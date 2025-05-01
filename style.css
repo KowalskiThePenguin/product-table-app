@@ -1,0 +1,914 @@
+/* style.css */
+
+/* Базовые стили таблицы */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    font-family: sans-serif;
+    color: #333;
+    table-layout: auto;
+}
+
+/* Стили ячеек и заголовков */
+th, td {
+    border: 1px solid #ddd;
+    padding: 0.7em;
+    text-align: center;
+}
+
+/* Стили шапки таблицы */
+thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #555;
+    border-color: #ccc;
+    padding: 1em 0.7em;
+}
+
+
+/* Стили подвала таблицы */
+tfoot td {
+    font-weight: bold;
+    background-color: #e9e9e9;
+    border-top: 2px solid #ccc;
+}
+/* Чередование цветов строк (зебра) */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Эффект при наведении на строку */
+tbody tr:hover {
+    background-color: #e0f2f7;
+}
+
+/* Стили полей ввода внутри ячеек */
+td input[type="text"] {
+    padding: 0.5em;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    font-family: inherit;
+    color: #333;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Убираем стандартную рамку при фокусе и добавляем свою */
+td input[type="text"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Специфичный стиль для поля НАИМЕНОВАНИЯ */
+td input.name-input {
+    display: block;
+    width: 100%;
+    text-align: left;
+    min-width: 450px;
+}
+
+/* Специфичный стиль для поля КОЛИЧЕСТВА - ФИКСИРОВАННАЯ ШИРИНА */
+td input.qty-input {
+     display: inline-block;
+     width: 10ch;
+     text-align: center;
+}
+/* style.css */
+
+/* ... (существующие стили) ... */
+
+/* Стили для индикатора статуса сети (Онлайн/Оффлайн) */
+#network-status {
+    position: fixed;
+    bottom: 80px; /* Выше FAB */
+    right: 20px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+    z-index: 1001; /* Выше FAB, но ниже overlay/sidebar-toggle */
+    display: none; /* Скрыто по умолчанию, показывается JS */
+    transition: background-color 0.3s ease, color 0.3s ease, bottom 0.3s ease, right 0.3s ease;
+}
+
+/* Добавляем смещение индикатора при открытом сайдбаре */
+body.sidebar-open #network-status {
+     left: 320px; /* Смещаем так же, как и FAB */
+     right: auto;
+}
+
+/* ... (остальные стили) ... */
+
+/* Стили кнопки удаления */
+.delete-btn {
+    cursor: pointer;
+    color: #ccc;
+    font-weight: bold;
+    padding: 0 0.3em;
+    display: inline-block;
+    transition: color 0.2s ease-in-out;
+    vertical-align: middle;
+}
+
+/* Эффект при наведении на кнопку удаления */
+.delete-btn:hover {
+    color: #dc3545;
+}
+
+/* Стили Floating Action Button (FAB) */
+/* --- Floating Action Button (FAB) Styles --- */
+/* Изменяем селектор с .fab на body .fab для увеличения специфичности */
+body .fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #007bff;
+  color: #fff;
+  font-size: 2.5em;
+  /* line-height: 60px; /* <-- Убрано (уже убрано в предыдущей версии, но убеждаемся) */
+  /* text-align: center; /* <-- Убрано (уже убрано в предыдущей версии, не нужно при display: flex) */
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  transition: all 0.3s ease-in-out, left 0.3s ease; /* Включаем left в плавный переход */
+  z-index: 1000;
+  left: auto; /* Ensure it's not affected by left by default */
+  /* Добавляем Flexbox для идеального центрирования символа '+' */
+  display: flex;
+  justify-content: center; /* Центрирование по горизонтали */
+  align-items: center;   /* Центрирование по вертикали */
+}
+
+/* Эффект при наведении */
+body .fab:hover {
+    background-color: #0056b3;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+    transform: scale(1.1);
+}
+
+/* Эффект при нажатии */
+body .fab:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* --- Styles for Sidebar Open State (Affecting FAB) --- */
+/* Селектор также должен быть более специфичным */
+body.sidebar-open .fab {
+   /* Shift FAB to the right when sidebar is open */
+   /* Sidebar width is 300px. Let's position it 20px from the sidebar edge. */
+   left: 320px; /* 300px (sidebar width) + 20px (gap) */
+   right: auto; /* Unset right property */
+   /* transform: none; /* Можно убрать transform: scale при открытии меню, если нужно */
+}
+	
+
+/* Эффект при наведении на FAB */
+.fab:hover {
+    background-color: #0056b3;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+    transform: scale(1.1);
+}
+
+/* Эффект при нажатии на FAB */
+.fab:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+/* style.css */
+
+/* ... (существующие стили до кнопки экспорта без изменений) ... */
+
+/* Стили для кнопки экспорта */
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em; /* Отступ снизу */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#export-csv:hover {
+    background-color: #218838; /* Темнее при наведении */
+}
+
+button#export-csv:active {
+    background-color: #1e7e34; /* Еще темнее при нажатии */
+}
+
+/* Стили для кнопки печати */
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#print-table:hover {
+    background-color: #0056b3;
+}
+
+button#print-table:active {
+    background-color: #004085;
+}
+
+/* style.css */
+
+/* ... (существующие стили до кнопки экспорта без изменений) ... */
+
+/* Стили для кнопки экспорта */
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em; /* Отступ снизу */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#export-csv:hover {
+    background-color: #218838; /* Темнее при наведении */
+}
+
+button#export-csv:active {
+    background-color: #1e7e34; /* Еще темнее при нажатии */
+}
+
+/* Стили для кнопки печати */
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#print-table:hover {
+    background-color: #0056b3;
+}
+
+button#print-table:active {
+    background-color: #004085;
+}
+
+/* Стили для кнопки снимка */
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#snapshot-table:hover {
+    background-color: #5a6268;
+}
+
+button#snapshot-table:active {
+    background-color: #545b62;
+}
+
+
+/* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
+@media print {
+    /* ... существующие правила для печати без изменений ... */
+
+    /* Скрываем кнопку снимка при печати */
+    button#snapshot-table {
+        display: none !important;
+    }
+}
+
+/* ... (остальные стили после блока @media print без изменений) ... */
+/* style.css */
+
+/* ... (существующие стили до блока @media print без изменений) ... */
+
+/* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
+@media print {
+    /* Скрываем элементы, которые не нужны при печати */
+    body {
+        background-color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+
+    .container {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        overflow: visible !important;
+    }
+
+    .fab,
+    button#export-csv,
+    button#print-table,
+    .suggestions-dropdown
+     {
+        display: none !important;
+    }
+
+    /* Устраняем зазор последнего столбца при печати */
+    tbody td:last-child,
+    thead th:last-child {
+        display: table-cell !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        overflow: hidden !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+    }
+
+     tfoot td:last-child {
+        display: none !important;
+     }
+
+
+    /* Убеждаемся, что таблица и ячейки печатаются с рамками */
+    table, th, td {
+        border: 1px solid #000 !important;
+        padding: 0.5em !important; /* Возвращаем стандартный padding для остальных ячеек */
+    }
+
+    thead th {
+        background-color: #f2f2f2 !important;
+    }
+
+    tbody tr:nth-child(even) {
+         background-color: #f9f9f9 !important;
+    }
+
+    tbody tr {
+        page-break-inside: avoid;
+    }
+
+     tfoot td {
+        background-color: #e9e9e9 !important;
+     }
+/* Правило для выравнивания второй ячейки подвала по левому краю */
+    tfoot td:nth-child(2) {
+        text-align: left;
+   }
+    /* Убеждаемся, что значения из полей ввода видны при печати */
+    input[type="text"] {
+        border: none !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        color: #000 !important;
+         -webkit-print-color-adjust: exact;
+         color-adjust: exact;
+         /* Убираем общие правила ширины, чтобы специфичные классы могли применить свою ширину */
+         width: auto !important;
+    }
+
+    /* !!! Устанавливаем минимальную ширину для ЯЧЕЙКИ наименования и разрешаем перенос текста !!! */
+    tbody td:nth-child(2), /* 2-я ячейка в строке тела таблицы (Наименование) */
+    thead th:nth-child(2) /* 2-й заголовок в шапке таблицы (Наименование) */
+     {
+        min-width: 5cm !important; /* Устанавливаем минимальную ширину, можно настроить */
+        width: auto !important; /* Позволяем ячейке расширяться, если текст длиннее мин. ширины */
+        box-sizing: border-box;
+        /* Убеждаемся, что текст в ячейке может переноситься */
+        white-space: normal !important;
+        word-wrap: break-word !important; /* Дополнительно разрешаем перенос внутри слов */
+     }
+
+    /* !!! Убеждаемся, что поле ввода "Наименование" занимает всю ширину своей родительской ячейки !!! */
+     td input.name-input {
+         width: 100% !important; /* Занимаем 100% ширины родительской td */
+         box-sizing: border-box;
+         /* Перенос текста теперь лучше контролировать на уровне ячейки, но эти правила тоже не помешают */
+         white-space: normal !important;
+         word-wrap: break-word !important;
+         height: auto !important; /* Позволяем полю растягиваться по высоте, если текст переносится */
+         overflow: visible !important; /* Убеждаемся, что текст не скрывается */
+
+         /* Остальные стили (border, background, padding, margin, color, box-shadow, color-adjust) уже заданы для input[type="text"] */
+         border: none !important;
+         background: transparent !important;
+         padding: 0 !important;
+         margin: 0 !important;
+         box-shadow: none !important;
+         color: #000 !important;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+      }
+
+
+    /* Фиксированная ширина для ЯЧЕЙКИ количества (из предыдущего шага - сохраняем) */
+    tbody td:nth-child(5),
+    thead th:nth-child(5)
+     {
+        width: 2cm !important;
+        min-width: 2cm !important;
+        max-width: 2cm !important;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-align: center !important;
+    }
+
+    /* Поле ввода количества заполняет свою ячейку (из предыдущего шага - сохраняем) */
+     td input.qty-input {
+         width: 100% !important;
+         box-sizing: border-box;
+         border: none !important;
+         background: transparent !important;
+         padding: 0 !important;
+         margin: 0 !important;
+         box-shadow: none !important;
+         color: #000 !important;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+      }
+
+
+}
+
+/* ... (остальные стили после блока @media print без изменений) ... */
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.container {
+	min-height: 80vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    overflow-x: auto;
+}
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 1em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1em; /* Отступ снизу */
+    transition: background-color 0.2s ease-in-out;
+}
+
+button#export-csv:hover {
+    background-color: #218838; /* Темнее при наведении */
+}
+
+button#export-csv:active {
+    background-color: #1e7e34; /* Еще темнее при нажатии */
+}
+
+/* --- СТИЛИ ДЛЯ ПОЛЬЗОВАТЕЛЬСКОГО СПИСКА ПРЕДЛОЖЕНИЙ --- */
+
+/* Стили для ячейки, содержащей поле наименования и выпадающий список */
+table tbody td:nth-child(2) {
+    position: relative;
+}
+
+
+/* Стили для контейнера пользовательских предложений */
+.suggestions-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #fff;
+    border: 1px solid #007bff;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    border-radius: 0 0 4px 4px;
+}
+
+/* Стили для отдельных элементов предложений */
+.suggestions-dropdown .suggestion-item {
+    padding: 0.7em 1em;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.suggestions-dropdown .suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestions-dropdown .suggestion-item:hover {
+    background-color: #f2f2f2;
+}
+
+.suggestions-dropdown .suggestion-item.highlighted {
+     background-color: #e9e9e9;
+}
+
+/* Стили для многострочного содержимого */
+.suggestions-dropdown .suggestion-item .main-line {
+    font-weight: bold;
+    word-break: break-word;
+}
+
+.suggestions-dropdown .suggestion-item .details-line {
+     font-size: 0.9em;
+     color: #666;
+     margin-top: 0.3em;
+     word-break: break-word;
+}
+/* style.css */
+
+/* ... (существующие стили) ... */
+
+body {
+    margin: 0;
+    padding: 0; /* Убираем padding у body, чтобы меню прилегало к краю */
+    background-color: #f8f9fa;
+    position: relative; /* Для позиционирования меню */
+    overflow-x: hidden; /* Предотвращаем горизонтальный скролл при открытом меню */
+}
+
+/* Стили для основного контейнера */
+.container {
+	min-height: 80vh;
+    /* max-width убран, чтобы контент мог занимать всю ширину */
+    margin: 0 auto;
+    padding: 20px; /* Возвращаем padding для контента */
+    overflow-x: auto;
+}
+
+/* Кнопки действий внутри контейнера */
+.action-buttons {
+    margin-bottom: 1em;
+}
+
+/* Кнопка-гамбургер */
+.menu-toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 15px;
+    z-index: 1100;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 9px 15px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: opacity 0.3s ease; /* Добавляем плавное исчезновение */
+}
+
+.menu-toggle-btn:hover {
+    background: #0056b3;
+}
+
+/* Стили для заголовка над таблицей */
+.current-view-title {
+    margin-top: 20px; /* Добавляем отступ сверху */
+    margin-bottom: 10px; /* Добавляем отступ снизу */
+    font-size: 1.5em;
+    color: #333;
+}
+
+/* ... (остальные стили) ... */
+/* Боковое меню */
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Изначально скрыто за левым краем */
+    width: 280px;
+    height: 100%;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1050;
+    transition: left 0.3s ease; /* Плавное появление */
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px; /* Отступ сверху для кнопки закрытия и заголовка */
+    box-sizing: border-box;
+}
+
+.side-menu.open {
+    left: 0; /* Показываем меню */
+}
+.close-menu-btn {
+    display: none; /* Скрыто по умолчанию */
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    color: #6c757d;
+}
+.close-menu-btn:hover {
+    color: #343a40;
+}
+
+/* Сдвиг основного контента при открытом меню */
+body.menu-open .container,
+body.menu-open .fab {
+    margin-left: 280px;
+}
+/* Сдвиг основного контента при открытом меню */
+body.menu-open .menu-toggle-btn {
+    /* Скрываем кнопку-гамбургер */
+    opacity: 0;
+    pointer-events: none; /* Делаем неактивной для кликов */
+}
+
+body.menu-open .close-menu-btn {
+     /* Показываем кнопку закрытия */
+     display: block;
+}
+
+
+/* Заголовок меню и кнопка закрытия */
+.menu-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #e9ecef;
+    box-sizing: border-box;
+}
+
+.menu-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #495057;
+}
+
+.close-menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    color: #6c757d;
+}
+.close-menu-btn:hover {
+    color: #343a40;
+}
+
+
+/* Список представлений */
+.view-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto; /* Скролл, если много списков */
+    flex-grow: 1; /* Занимает оставшееся место */
+}
+
+.view-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #e9ecef;
+    position: relative; /* Для позиционирования dropdown */
+}
+
+.view-item:hover {
+    background-color: #e9ecef;
+}
+
+.view-item.active-view {
+    background-color: #cfe2ff;
+    font-weight: bold;
+    color: #0a58ca;
+}
+
+.view-item span {
+    flex-grow: 1;
+    margin-right: 10px; /* Отступ от кнопок */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Кнопка троеточия и выпадающее меню действий */
+.view-actions {
+    position: relative; /* Контекст для позиционирования dropdown */
+}
+
+.ellipsis-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 5px;
+    font-size: 0.9em;
+}
+.ellipsis-btn:hover {
+    color: #343a40;
+}
+
+.actions-dropdown {
+    display: none; /* Скрыто по умолчанию */
+    position: absolute;
+    right: 0;
+    top: 100%; /* Появляется под кнопкой */
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 1100; /* Выше других элементов меню */
+    min-width: 120px;
+}
+
+/* Стили для кнопки троеточия и выпадающего меню действий */
+.view-actions {
+    position: relative; /* Контекст для позиционирования dropdown */
+}
+
+/* Стили для кнопки троеточия и выпадающего меню действий */
+.view-actions {
+    position: relative; /* Контекст для позиционирования dropdown */
+}
+
+.ellipsis-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 5px; /* Небольшой паддинг для области клика/наведения */
+    font-size: 0.9em;
+    width: 30px; /* Задаем фиксированную ширину */
+    height: 30px; /* Задаем фиксированную высоту */
+    display: flex; /* Используем flexbox для центрирования иконки */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
+    border-radius: 50%; /* Делаем круглым */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Плавный переход */
+}
+.ellipsis-btn:hover {
+    color: #343a40; /* Цвет иконки при наведении */
+    background-color: rgba(0, 0, 0, 0.1); /* Затемненный фон */
+}
+
+
+.actions-dropdown {
+    display: none; /* Скрыто по умолчанию */
+    position: absolute;
+    right: 0;
+    top: 100%; /* Появляется под кнопкой */
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 1100; /* Выше других элементов меню */
+    min-width: 120px;
+}
+
+/* Показываем только при наличии класса 'show', который добавляется JS по клику */
+.actions-dropdown.show {
+    display: block;
+}
+
+.actions-dropdown a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.actions-dropdown a:hover {
+    background-color: #f2f2f2;
+}
+.actions-dropdown {
+    display: none; /* Скрыто по умолчанию */
+    position: absolute;
+    right: 0;
+    top: 100%; /* Появляется под кнопкой */
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 1100; /* Выше других элементов меню */
+    min-width: 120px;
+}
+
+/* Показываем только при наличии класса 'show', который добавляется JS по клику */
+.actions-dropdown.show {
+    display: block;
+}
+
+.actions-dropdown a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.actions-dropdown a:hover {
+    background-color: #f2f2f2;
+}
+
+.actions-dropdown a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.actions-dropdown a:hover {
+    background-color: #f2f2f2;
+}
+
+/* Кнопка "Добавить список" */
+.add-view-button {
+    display: block;
+    width: calc(100% - 30px); /* Ширина минус паддинги */
+    margin: 15px;
+    padding: 10px;
+    background-color: #198754; /* Зеленый */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 1em;
+}
+.add-view-button:hover {
+    background-color: #157347;
+}
+
+
+/* ... (остальные стили, включая @media print) ... */
+
+/* Адаптация стилей печати */
+@media print {
+    /* Скрываем меню и его кнопку при печати */
+    .menu-toggle-btn,
+    .side-menu {
+        display: none !important;
+    }
+
+    /* Убираем отступ слева у контента при печати - ЭТО ПРАВИЛО МОЖНО УДАЛИТЬ,
+       так как сдвига нет совсем. Оставим на всякий случай, если были другие отступы. */
+    body.menu-open .container,
+    body.menu-open .fab {
+        margin-left: 0 !important;
+    }
+
+    .container {
+        margin-left: 0 !important; /* Убеждаемся, что нет отступа */
+        padding: 0 !important; /* Убираем паддинги для печати */
+    }
+
+    .action-buttons {
+        display: none !important; /* Скрываем кнопки экспорта/печати/снимка */
+    }
+
+    /* ... (остальные стили @media print) ... */
+}
+
+
+/* ... (остальные стили без изменений) ... */

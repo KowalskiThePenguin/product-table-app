@@ -1,0 +1,22 @@
+{
+  "name": "Моя Таблица Товаров",
+  "short_name": "Таблица",
+  "description": "Приложение для ведения таблиц товаров с оффлайн-сохранением.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#198754",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+    // Можете добавить и другие размеры иконок
+  ]
+}
