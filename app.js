@@ -314,7 +314,6 @@ function exportTableToCsv() {
       const cells = tr.querySelectorAll('td');
       const nameInput = tr.querySelector('.name-input');
       const qtyInput = tr.querySelector('.qty-input');
-      const cleanedProductId = String(productId).replace(/\u00A0/g, '').trim(); // <--- ДОБАВЛЕНА ОЧИСТКА
 
       if (cells.length >= 7 && nameInput && qtyInput) {
           const productId = tr.dataset.productId || '';
@@ -324,6 +323,7 @@ function exportTableToCsv() {
           const qtyStr = (qtyInput.value || '0').replace(',', '.');
           const priceStr = (cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.');
           const sumStr = (cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.');
+          const cleanedProductId = String(productId).replace(/\u00A0/g, '').trim(); // <--- ДОБАВЛЕНА ОЧИСТКА
 
           const rowCsv = [
               escapeCsvString('\t' + cleanedProductId), // <--- Используем ОЧИЩЕННЫЙ ID
