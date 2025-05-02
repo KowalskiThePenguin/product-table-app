@@ -92,23 +92,35 @@ self.addEventListener('fetch', (event) => {
   }
   // 2. Стратегия для остальных запросов (сначала кэш, затем сеть) - для оболочки приложения
   else {
-     // console.log('Service Worker: Обработка запроса кэш сначала для:', event.request.url);
+     console.log('Service Worker: Обработка запроса кэш сначала для:', event.request.url); // Убрал комментарий для лога
     event.respondWith( // Перехватываем ответ на запрос
       caches.match(event.request) // Пытаемся найти запрос в кэше
         .then((response) => {
           // Если ресурс найден в кэше, возвращаем его
           if (response) {
-            // console.log('Service Worker: Ресурс найден в кэше:', event.request.url);
+            console.log('Service Worker: Ресурс найден в кэше:', event.request.url); // Убрал комментарий для лога
             return response;
           }
           // Если ресурс не найден в кэше, идем в сеть
           console.log('Service Worker: Ресурс не найден в кэше, запрашиваем из сети:', event.request.url);
-          return fetch(event.request);
+          return fetch(event.request); // Этот Промис разрешится или отклонится
         })
         .catch((error) => {
           // Если что-то пошло не так (например, нет сети и нет в кэше)
           console.error('Service Worker: Ошибка при обработке запроса:', event.request.url, error);
-          // Можно вернуть запасную оффлайн-страницу, если она закэширована
+
+          // --- ФОЛЛБЭК (ЗАПАСНОЙ ОТВЕТ) ---
+          // Возвращаем запасной Response, когда кэш и сеть недоступны.
+          // Это предотвратит ошибку TypeError.
+          // В данном случае, возвращаем простой HTML-ответ.
+          return new Response('<h1>Оффлайн</h1><p>Не удалось загрузить приложение. Пожалуйста, проверьте ваше интернет-соединение.</p>', {
+              status: 503, // Код статуса "Сервис недоступен"
+              headers: { 'Content-Type': 'text/html' } // Указываем тип контента
+          });
+          // --- КОНЕЦ ФОЛЛБЭКА ---
+
+          // Если бы у вас была оффлайн-страница (например, offline.html), которую вы кэшируете
+          // в urlsToCache, можно было бы сделать так:
           // return caches.match('/offline.html');
         })
     );
