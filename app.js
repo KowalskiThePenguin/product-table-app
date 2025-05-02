@@ -314,6 +314,7 @@ function exportTableToCsv() {
       const cells = tr.querySelectorAll('td');
       const nameInput = tr.querySelector('.name-input');
       const qtyInput = tr.querySelector('.qty-input');
+      const cleanedProductId = String(productId).replace(/\u00A0/g, '').trim(); // <--- ДОБАВЛЕНА ОЧИСТКА
 
       if (cells.length >= 7 && nameInput && qtyInput) {
           const productId = tr.dataset.productId || '';
@@ -325,13 +326,14 @@ function exportTableToCsv() {
           const sumStr = (cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.');
 
           const rowCsv = [
-              escapeCsvString('\t' + productId),
-              escapeCsvString(name),
-              escapeCsvString(unit),
-              escapeCsvString(country),
-              escapeCsvString(qtyStr.replace('.', ',')),
-              escapeCsvString(priceStr.replace('.', ',')),
-              escapeCsvString(sumStr.replace('.', ','))
+              escapeCsvString('\t' + cleanedProductId), // <--- Используем ОЧИЩЕННЫЙ ID
+              escapeCsvString(nameInput.value || ''),
+              escapeCsvString(unitCell ? unitCell.textContent.trim() : ''),
+              escapeCsvString(countryCell ? countryCell.textContent.trim() : ''),
+              // Убедитесь, что числовые значения экспортируются с точкой как десятичным разделителем, если нужно
+              escapeCsvString((qtyInput.value || '0').replace(',', '.')),
+              escapeCsvString((cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.')),
+              escapeCsvString((cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.')),
           ];
           csv.push(rowCsv.join(';'));
       }
