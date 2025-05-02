@@ -1337,3 +1337,21 @@ async function initializeApp() {
 
 // Запускаем инициализацию после загрузки DOM
 document.addEventListener('DOMContentLoaded', initializeApp);
+// --- Автосохранение при уходе со страницы ---
+window.addEventListener('beforeunload', () => {
+    console.log('Saving app state before unload...');
+    // Перед сохранением, убедимся, что значения из полей ввода попали в атрибуты 'value'
+    // Это важно, т.к. innerHTML сохраняет атрибуты, но не текущие значения полей ввода.
+    tableBody.querySelectorAll('tr input').forEach(input => {
+        input.setAttribute('value', input.value);
+    });
+
+    // Захватываем текущее состояние активного списка из DOM
+    viewStates[activeViewId] = tableBody.innerHTML;
+
+    // Сохраняем весь объект состояния в localStorage
+    saveAppStateToLocalStorage(); // Эта функция уже содержит console.log успеха/ошибки
+    // Нет необходимости возвращать что-либо для вывода стандартного сообщения браузера,
+    // так как мы делаем автоматическое сохранение.
+});
+// --- Конец блока автосохранения ---
