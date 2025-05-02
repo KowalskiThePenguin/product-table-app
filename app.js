@@ -311,33 +311,34 @@ function exportTableToCsv() {
   }
 
   tableBody.querySelectorAll('tr').forEach(tr => {
-      const cells = tr.querySelectorAll('td');
-      const nameInput = tr.querySelector('.name-input');
-      const qtyInput = tr.querySelector('.qty-input');
+      const cells = tr.querySelectorAll('td');
+      const nameInput = tr.querySelector('.name-input');
+      const qtyInput = tr.querySelector('.qty-input');
 
-      if (cells.length >= 7 && nameInput && qtyInput) {
-          const productId = tr.dataset.productId || '';
-          const name = nameInput.value || '';
-          const unit = cells[2] ? cells[2].textContent.trim() : '';
-          const country = cells[3] ? cells[3].textContent.trim() : '';
-          const qtyStr = (qtyInput.value || '0').replace(',', '.');
-          const priceStr = (cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.');
-          const sumStr = (cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.');
-          const cleanedProductId = String(productId).replace(/\u00A0/g, '').trim(); // <--- ДОБАВЛЕНА ОЧИСТКА
+      // Проверяем, что строка имеет достаточно ячеек и необходимые инпуты
+      if (cells.length >= 7 && nameInput && qtyInput) {
+          const productId = tr.dataset.productId || '';
+          // const name = nameInput.value || ''; // Эта переменная name не используется в rowCsv
+          // const unit = cells[2] ? cells[2].textContent.trim() : ''; // Эти переменные тоже не нужны, используем прямо в массиве
+          // const country = cells[3] ? cells[3].textContent.trim() : '';
+          // const qtyStr = (qtyInput.value || '0').replace(',', '.'); // Эта переменная тоже не нужна
 
-          const rowCsv = [
-              escapeCsvString('\t' + cleanedProductId), // <--- Используем ОЧИЩЕННЫЙ ID
-              escapeCsvString(nameInput.value || ''),
-              escapeCsvString(unitCell ? unitCell.textContent.trim() : ''),
-              escapeCsvString(countryCell ? countryCell.textContent.trim() : ''),
-              // Убедитесь, что числовые значения экспортируются с точкой как десятичным разделителем, если нужно
-              escapeCsvString((qtyInput.value || '0').replace(',', '.')),
-              escapeCsvString((cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.')),
-              escapeCsvString((cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.')),
-          ];
-          csv.push(rowCsv.join(';'));
-      }
-  });
+          const cleanedProductId = String(productId).replace(/\u00A0/g, '').trim(); // Очистка ID
+
+          const rowCsv = [
+              escapeCsvString('\t' + cleanedProductId), // Используем ОЧИЩЕННЫЙ ID
+              escapeCsvString(nameInput.value || ''), // Наименование из инпута
+              escapeCsvString(cells[2] ? cells[2].textContent.trim() : ''), // <--- ИСПРАВЛЕНО: Используем cells[2] для Ед. изм.
+              escapeCsvString(cells[3] ? cells[3].textContent.trim() : ''), // <--- ИСПРАВЛЕНО: Используем cells[3] для Страны
+              escapeCsvString((qtyInput.value || '0').replace(',', '.')), // Кол-во из инпута
+              // Цена из data-атрибута ячейки 5
+              escapeCsvString((cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.')),
+              // Сумма из data-атрибута ячейки 6
+              escapeCsvString((cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.')),
+          ];
+          csv.push(rowCsv.join(';'));
+      }
+  });
 
   const footerRow = productTable.querySelector('tfoot tr');
   if (footerRow) {
