@@ -1,7 +1,7 @@
 // sw.js
 
 // Укажите имя кэша для текущей версии ваших ассетов
-const CACHE_NAME = 'product-table-cache-v1';
+const CACHE_NAME = 'product-table-cache-v2';
 
 // Список основных файлов, которые составляют "оболочку" приложения
 const urlsToCache = [
