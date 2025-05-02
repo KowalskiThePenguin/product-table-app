@@ -114,9 +114,11 @@ function parseFormattedNumber(str) { /* ... ваш код ... */
 }
 
 // === Регистрация Service Worker === (БЕЗ ИЗМЕНЕНИЙ)
+// === Регистрация Service Worker ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/product-table-app/' }) // ИЗМЕНЕНО: добавлена область действия
+    // Эту строку нужно изменить
+    navigator.serviceWorker.register('/sw.js', { scope: '/product-table-app/' })
       .then((registration) => {
         console.log('Service Worker: Регистрация успешна с областью видимости:', registration.scope);
       })
@@ -125,7 +127,6 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
 // === Отслеживание статуса сети === (БЕЗ ИЗМЕНЕНИЙ)
 const networkStatusIndicator = document.createElement('div');
 networkStatusIndicator.id = 'network-status';
