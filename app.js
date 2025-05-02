@@ -32,12 +32,38 @@ const currentViewNameElement = document.getElementById('current-view-name');
 function saveAppStateToLocalStorage() {
     console.log('Saving app state to localStorage...');
     try {
+        // --- НОВОЕ: Обновляем состояние ТЕКУЩЕГО активного вида перед сохранением ---
+
+        // 1. Обновляем атрибуты 'value' у инпутов в текущей таблице
+        // Это гарантирует, что при восстановлении innerHTML инпуты будут иметь правильные значения
+        tableBody.querySelectorAll('tr').forEach(tr => {
+            const nameInput = tr.querySelector('.name-input');
+            const qtyInput = tr.querySelector('.qty-input');
+            if (nameInput) {
+                // Устанавливаем атрибут 'value' равным текущему значению поля
+                nameInput.setAttribute('value', nameInput.value);
+                // console.log(`Updating nameInput attribute for row ${tr.rowIndex} to:`, nameInput.value); // Лог для отладки
+            }
+            if (qtyInput) {
+                // Устанавливаем атрибут 'value' равным текущему значению поля
+                qtyInput.setAttribute('value', qtyInput.value);
+                 // console.log(`Updating qtyInput attribute for row ${tr.rowIndex} to:`, qtyInput.value); // Лог для отладки
+            }
+        });
+        // console.log('Input attributes updated before saving state.'); // Лог для отладки
+
+        // 2. Сохраняем актуальное HTML-содержимое tableBody для текущего активного вида
+        viewStates[activeViewId] = tableBody.innerHTML;
+        // console.log(`Updated state for ${activeViewId} before saving:`, viewStates[activeViewId].substring(0, 100) + '...'); // Лог для отладки
+        // --- Конец НОВОГО блока ---
+
+
         // Собираем все данные, которые нужно сохранить
         const appState = {
             viewStates: viewStates,
-            viewMetadata: viewMetadata,
-            activeViewId: activeViewId,
-            nextViewIdCounter: nextViewIdCounter
+            viewMetadata: viewMetadata, // Метаданные уже обновляются в функциях rename/copy/add
+            activeViewId: activeViewId, // ActiveViewId уже обновляется в switchView
+            nextViewIdCounter: nextViewIdCounter // Счетчик уже обновляется в addNewView
         };
         const jsonState = JSON.stringify(appState);
         localStorage.setItem('productTableState', jsonState);
@@ -48,7 +74,6 @@ function saveAppStateToLocalStorage() {
         // alert('Не удалось сохранить данные локально. Возможно, превышен лимит хранилища браузера.');
     }
 }
-
 function loadAppStateFromLocalStorage() {
     console.log('Loading app state from localStorage...');
     try {
