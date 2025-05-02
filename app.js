@@ -1202,7 +1202,7 @@ async function initializeApp() {
 
     // 3. Привязываем обработчик FAB
     fabButton.addEventListener('click', () => {
-        addRow(true);
+        addRow(false);
         saveAppStateToLocalStorage(); // Сохраняем после добавления строки
     });
 
