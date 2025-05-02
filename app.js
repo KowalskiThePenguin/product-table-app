@@ -114,9 +114,10 @@ function parseFormattedNumber(str) { /* ... ваш код ... */
 }
 
 
+// === Регистрация Service Worker ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Эту строку нужно изменить
+    // ИСПРАВЛЕН ПУТЬ К СКРИПТУ Service Worker для GitHub Pages
     navigator.serviceWorker.register('/product-table-app/sw.js', { scope: '/product-table-app/' })
       .then((registration) => {
         console.log('Service Worker: Регистрация успешна с областью видимости:', registration.scope);
