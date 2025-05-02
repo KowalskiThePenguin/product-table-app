@@ -91,7 +91,7 @@ function parseFormattedNumber(str) { /* ... ваш код ... */
 // === Регистрация Service Worker === (БЕЗ ИЗМЕНЕНИЙ)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js', { scope: '/product-table-app/' }) // ИЗМЕНЕНО: добавлена область действия
       .then((registration) => {
         console.log('Service Worker: Регистрация успешна с областью видимости:', registration.scope);
       })

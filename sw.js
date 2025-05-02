@@ -5,16 +5,15 @@ const CACHE_NAME = 'product-table-cache-v1';
 
 // Список основных файлов, которые составляют "оболочку" приложения
 const urlsToCache = [
-  './', // Кэшируем index.html (корневой путь)
+  './', // Корень области действия
   'index.html',
   'style.css',
   'app.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js' // Кэшируем библиотеку html2canvas
-  // Добавьте сюда ссылки на файлы Font Awesome, если вы их используете локально или с CDN
-  // Например:
-  // 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-  // 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2',
-  // и т.д. для всех необходимых файлов шрифтов
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  './manifest.json', // Добавьте или убедитесь, что без ведущего слеша
+  './icons/icon-192x192.png', // Добавьте или убедитесь, что без ведущего слеша
+  './icons/icon-512x512.png' // Добавьте или убедитесь, что без ведущего слеша
+  // Добавьте другие файлы, которые хотите кэшировать
 ];
 
 // Название кэша для данных API (список товаров)
