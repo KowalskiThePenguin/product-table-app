@@ -4,7 +4,7 @@
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1em;
+    margin-top: 0;
     font-family: sans-serif;
     color: #333;
     table-layout: auto;
@@ -297,7 +297,47 @@ button#snapshot-table:hover {
 button#snapshot-table:active {
     background-color: #545b62;
 }
+.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 100%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    padding: 0 10px;
+}
 
+.print-header-text .print-date {
+    font-size: 0.9em;
+    color: #555;
+    text-align: left;
+    flex-basis: 0; /* Начинаем с нулевого базового размера */
+    flex-grow: 1; /* <--- Позволяем этому элементу "вырасти" */
+    flex-shrink: 1;
+}
+
+.print-header-text .company-name {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+    text-align: center; /* Центрируем текст внутри span */
+    flex-basis: auto; /* Базовый размер определяется содержимым */
+    flex-grow: 0; /* <--- Не даем этому элементу "вырасти", чтобы оно оставалось по центру */
+    flex-shrink: 0; /* Предотвращаем сжатие */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Опционально: установить минимальную ширину, если нужно */
+    /* min-width: 150px; */
+}
+
+/* Стили для элемента-заполнителя справа */
+.print-header-text .print-right-filler {
+     flex-basis: 0; /* Начинаем с нулевого базового размера */
+     flex-grow: 1; /* <--- Позволяем этому элементу "вырасти" так же, как и дате */
+     flex-shrink: 1;
+}
 
 /* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
 @media print {
@@ -308,14 +348,46 @@ button#snapshot-table:active {
         display: none !important;
     }
 }
-    .print-header-image {
-        display: block !important;
-        text-align: center;		/* Делаем блок видимым */
-        /* Возможно, потребуется дополнительная стилизация для печати */
-        margin-bottom: 1em; /* Отступ после изображения */
-        margin-top: 1em; /* Отступ перед изображением */
+    .print-header-text {
+        display: flex !important; /* Убедимся, что flexbox активен */
+        /* justify-content: space-between; */ /* <--- Возможно, убрать или изменить */
+        justify-content: center; /* Центрируем содержимое */
+        align-items: center;
+        width: 100%;
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        padding: 0 10px !important;
     }
 
+    .print-header-text .print-date {
+         font-size: 0.9em !important;
+         color: #555 !important;
+         text-align: left !important;
+         flex-basis: 0 !important;
+         flex-grow: 1 !important; /* <--- Позволяем "вырасти" */
+         flex-shrink: 1 !important;
+    }
+
+    .print-header-text .company-name {
+         font-size: 1.8em !important;
+         font-weight: bold !important;
+         color: #333 !important;
+         text-align: center !important;
+         flex-basis: auto !important;
+         flex-grow: 0 !important; /* <--- Не даем "вырасти", чтобы оно оставалось по центру */
+         flex-shrink: 0 !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          /* min-width: 150px !important; */ /* Опционально */
+    }
+
+    /* Стили для элемента-заполнителя справа при печати */
+    .print-header-text .print-right-filler {
+         flex-basis: 0 !important;
+         flex-grow: 1 !important; /* <--- Позволяем "вырасти" */
+         flex-shrink: 1 !important;
+    }
 /* ... (остальные стили после блока @media print без изменений) ... */
 /* style.css */
 
@@ -402,6 +474,30 @@ button#snapshot-table:active {
          /* Убираем общие правила ширины, чтобы специфичные классы могли применить свою ширину */
          width: auto !important;
     }
+tbody input[type="text"], /* Поле "Наименование" */
+    tbody input[type="number"] /* Поле "Количество" (если у него type="number", иначе тоже type="text") */
+     {
+        font-family: inherit !important; /* Наследуем шрифт от родительской ячейки */
+        font-size: inherit !important; /* Наследуем размер шрифта */
+        font-weight: normal !important; /* Или bold, если остальной текст жирный */
+        color: inherit !important; /* Наследуем цвет текста */
+        border: none !important; /* Убираем границы полей ввода */
+        background-color: transparent !important; /* Убираем фон полей ввода */
+        box-shadow: none !important; /* Убираем тени, если есть */
+        padding: 0 !important; /* Убираем внутренние отступы полей ввода, чтобы текст плотно прилегал к рамкам ячейки */
+        margin: 0 !important; /* Убираем внешние отступы */
+        width: 100% !important; /* Поле ввода занимает всю ширину ячейки */
+        box-sizing: border-box !important; /* Учитываем padding/border в общей ширине */
+        text-align: inherit !important; /* Наследуем выравнивание текста */
+    }
+
+    /* Дополнительно, если у ячеек с полями ввода есть специфичные стили, которые нужно сохранить */
+    /* Например, если у ячеек есть padding, который нужно, чтобы текст внутри поля ввода тоже учитывал */
+    /* Это обычно решается padding'ом на самой td */
+     tbody td {
+        /* Убедитесь, что у ячеек есть нужный padding */
+        padding: 0.5em !important; /* Пример padding'а из общих правил */
+     }
 
     /* !!! Устанавливаем минимальную ширину для ЯЧЕЙКИ наименования и разрешаем перенос текста !!! */
     tbody td:nth-child(2), /* 2-я ячейка в строке тела таблицы (Наименование) */
@@ -413,6 +509,8 @@ button#snapshot-table:active {
         /* Убеждаемся, что текст в ячейке может переноситься */
         white-space: normal !important;
         word-wrap: break-word !important; /* Дополнительно разрешаем перенос внутри слов */
+		text-align: inherit !important; // <--- Эта строка уже есть, она наследует 'left' от родителя
+
      }
 
     /* !!! Убеждаемся, что поле ввода "Наименование" занимает всю ширину своей родительской ячейки !!! */
@@ -431,7 +529,7 @@ button#snapshot-table:active {
          padding: 0 !important;
          margin: 0 !important;
          box-shadow: none !important;
-         color: #000 !important;
+         color: #333 !important;
           -webkit-print-color-adjust: exact;
           color-adjust: exact;
       }
@@ -458,7 +556,7 @@ button#snapshot-table:active {
          padding: 0 !important;
          margin: 0 !important;
          box-shadow: none !important;
-         color: #000 !important;
+         color: #333 !important;
           -webkit-print-color-adjust: exact;
           color-adjust: exact;
       }
@@ -582,7 +680,36 @@ body {
 
 /* Кнопки действий внутри контейнера */
 .action-buttons {
-    margin-bottom: 1em;
+    margin-bottom: 1em; /* Этот отступ может остаться для обычного потока, но он не влияет на fixed */
+    text-align: left; /* Выравнивание кнопок внутри контейнера */
+
+    /* --- Добавляем фиксированное позиционирование --- */
+    position: fixed; /* Закрепляем элемент относительно окна браузера */
+    top: 10px; /* Отступ сверху (можно настроить) */
+    right: 10px; /* Отступ справа (можно настроить) */
+    z-index: 10; /* Убедимся, что кнопки находятся поверх другого контента (но ниже меню, у которого z-index выше) */
+
+    /* Добавляем фон и отступы, чтобы контент под кнопками не просвечивал */
+    background-color: #fff; /* Белый фон */
+    padding: 10px; /* Внутренние отступы вокруг кнопок */
+    border-radius: 5px; /* Скругленные углы (опционально) */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Легкая тень (опционально) */
+
+    /* Чтобы кнопки не переносились на новую строку, если их много */
+    white-space: nowrap;
+
+    /* --- Конец фиксированного позиционирования --- */
+}
+
+/* --- Добавляем отступ к body, чтобы контент не перекрывался кнопками --- */
+/* Нужно добавить верхний отступ к body, равный высоте закрепленных кнопок + небольшой зазор */
+body {
+    /* Оцените высоту вашего блока .action-buttons. Если высота кнопок с padding около 40-50px,
+       установите padding-top немного больше, например, 60px. */
+    padding-top: 60px; /* Отрегулируйте это значение */
+    /* Если кнопки широкие и закреплены справа, может понадобиться padding-right, но обычно top/right достаточно */
+
+    /* Остальные стили body... */
 }
 
 /* Кнопка-гамбургер */
@@ -608,7 +735,7 @@ body {
 /* Стили для заголовка над таблицей */
 .current-view-title {
     margin-top: 20px; /* Добавляем отступ сверху */
-    margin-bottom: 10px; /* Добавляем отступ снизу */
+    margin-bottom: 0; /* Добавляем отступ снизу */
     font-size: 1.5em;
     color: #333;
 }
@@ -887,6 +1014,24 @@ body.menu-open .close-menu-btn {
 .add-view-button:hover {
     background-color: #157347;
 }
+.print-header-image {
+    /* display: none; */ /* Удалите, если хотите видеть его всегда */
+    display: block; /* Делает блок видимым и занимает всю ширину */
+    text-align: center !important; /* <--- ДОБАВЛЕНО !important для гарантии центрирования */
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    width: 100%; /* Убедимся, что блок занимает всю ширину */
+    box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+/* Стилизация самого изображения (для контроля размера в обычном режиме) */
+.print-header-image img {
+    max-width: 100%; /* Размер изображения */
+    height: auto;
+    /* Убедитесь, что нет float: left; или text-align на самом img */
+    /* float: none !important; */
+    /* text-align: initial !important; */
+}
 
 
 /* ... (остальные стили, включая @media print) ... */
@@ -916,13 +1061,20 @@ body.menu-open .close-menu-btn {
     }
 /* Скрываем изображение по умолчанию */
     .print-header-image {
-       display: none;
-       text-align: center; /* Выравнивание изображения по центру */
-       margin-bottom: 1em; /* Отступ снизу */
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 100% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
     }
 
-/* Стилизация самого изображения (опционально, для контроля размера) */
+    /* Стилизация самого изображения при печати */
     .print-header-image img {
-       max-width: 100%; /* Максимальная ширина изображения */
-       height: auto; /* Сохраняем пропорции */
+         max-width: 15cm !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
     }
+    	

@@ -412,8 +412,32 @@ function exportTableToCsv() {
   URL.revokeObjectURL(url);
   console.log(`Table for view '${viewName}' exported to CSV.`);
 }
-function printTable() { /* ... ваш код ... */
+function printTable() {
+    // Получаем элемент для даты
+    const dateElement = document.querySelector('.print-header-text .print-date');
+    let originalDateText = ''; // Сохраняем исходное содержимое, если вдруг оно было
+
+    if (dateElement) {
+        originalDateText = dateElement.textContent; // Сохраняем
+        const today = new Date();
+        // Форматируем дату как "3 мая 2025 г."
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = today.toLocaleDateString('ru-RU', options);
+        dateElement.textContent = formattedDate; // Вставляем текущую дату
+        console.log('Вставлена дата для печати:', formattedDate);
+    }
+
+    // Вызываем печать
     window.print();
+
+    // Очищаем элемент даты после завершения печати
+    if (dateElement) {
+        // Задержка нужна, потому что window.print может не блокировать выполнение скрипта полностью
+        setTimeout(() => {
+             dateElement.textContent = originalDateText; // Восстанавливаем или очищаем
+             console.log('Очищена дата после печати.');
+        }, 100); // Небольшая задержка
+    }
 }
 
 function captureTableSnapshot() {
@@ -1244,6 +1268,15 @@ async function initializeApp() {
 
     // 6. Обновляем статус сети
     updateNetworkStatus();
+const dateElement = document.querySelector('.print-header-text .print-date');
+    if (dateElement) {
+        const today = new Date();
+        // Форматируем дату как "3 мая 2025 г." (или другой формат)
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = today.toLocaleDateString('ru-RU', options);
+        dateElement.textContent = formattedDate; // Вставляем дату
+        console.log('Дата вставлена при инициализации:', formattedDate); // Лог
+    }
 
 
     // --- НОВОЕ: Загрузка данных из localStorage ---
