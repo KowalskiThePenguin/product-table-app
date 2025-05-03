@@ -308,6 +308,13 @@ button#snapshot-table:active {
         display: none !important;
     }
 }
+    .print-header-image {
+        display: block !important;
+        text-align: center;		/* Делаем блок видимым */
+        /* Возможно, потребуется дополнительная стилизация для печати */
+        margin-bottom: 1em; /* Отступ после изображения */
+        margin-top: 1em; /* Отступ перед изображением */
+    }
 
 /* ... (остальные стили после блока @media print без изменений) ... */
 /* style.css */
@@ -907,9 +914,15 @@ body.menu-open .close-menu-btn {
     .action-buttons {
         display: none !important; /* Скрываем кнопки экспорта/печати/снимка */
     }
+/* Скрываем изображение по умолчанию */
+    .print-header-image {
+       display: none;
+       text-align: center; /* Выравнивание изображения по центру */
+       margin-bottom: 1em; /* Отступ снизу */
+    }
 
-    /* ... (остальные стили @media print) ... */
-}
-
-
-/* ... (остальные стили без изменений) ... */
+/* Стилизация самого изображения (опционально, для контроля размера) */
+    .print-header-image img {
+       max-width: 100%; /* Максимальная ширина изображения */
+       height: auto; /* Сохраняем пропорции */
+    }
