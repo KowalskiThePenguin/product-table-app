@@ -376,7 +376,7 @@ button#snapshot-table:active {
     }
 
      tfoot td {
-        background-color: #e9e9e9 !important;
+        background-color: #F7F21A !important;
      }
 /* Правило для выравнивания второй ячейки подвала по левому краю */
     tfoot td:nth-child(2) {
