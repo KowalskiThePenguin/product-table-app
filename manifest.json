@@ -1,6 +1,6 @@
 {
-  "name": "Моя Таблица Товаров",
-  "short_name": "Таблица",
+  "name": "Aqua Luxe",
+  "short_name": "Списки",
   "description": "Приложение для ведения таблиц товаров с оффлайн-сохранением.",
   "start_url": "/",
   "display": "standalone",
