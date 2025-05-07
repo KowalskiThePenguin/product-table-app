@@ -774,6 +774,7 @@ function reAttachEventListenersToRows() {
 
         // Удаляем старые и добавляем новые
         if (nameInput && suggestionsDropdown) {
+            console.log('Attaching listeners to nameInput in row:', tr.rowIndex); // Лог привязки
             // Важно: Удаляем с помощью сохраненных ссылок, если они есть
             if (nameInput._inputHandler) nameInput.removeEventListener('input', nameInput._inputHandler);
             if (nameInput._focusHandler) nameInput.removeEventListener('focus', nameInput._focusHandler);
@@ -807,44 +808,63 @@ function reAttachEventListenersToRows() {
              // --- НОВЫЙ ОБРАБОТЧИК СОБЫТИЯ PASTE ---
             nameInput._pasteHandler = async (event) => {
                 event.preventDefault(); // Отменяем стандартную вставку
+                console.log('Paste event triggered.'); // Лог срабатывания события
 
                 const pasteData = event.clipboardData.getData('text');
+                console.log('Pasted data:', pasteData); // Лог сырых данных из буфера обмена
                 const lines = pasteData.split(/\r?\n/).filter(line => line.trim() !== ''); // Разбиваем на строки, фильтруем пустые
+                console.log('Split lines:', lines); // Лог массива строк после разделения
 
-                if (lines.length === 0) return; // Если вставлены пустые данные, ничего не делаем
+                if (lines.length === 0) {
+                    console.log('No valid lines to paste.');
+                    return; // Если вставлены пустые данные, ничего не делаем
+                }
 
-                let currentRow = tr; // Начинаем с текущей строки
+                let currentRow = tr; // Начинаем с текущей строки, куда вставили
+                console.log('Starting paste from row:', currentRow.rowIndex); // Лог начальной строки
 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim(); // Берем строку и убираем лишние пробелы
+                    console.log(`Processing line ${i + 1}/${lines.length}: "${line}"`); // Лог текущей обрабатываемой строки
 
                     let targetNameInput;
 
                     if (i === 0) {
                         // Для первой строки - вставляем в текущее поле
                         targetNameInput = nameInput;
+                        console.log('Targeting current input for first line.');
                     } else {
                         // Для последующих строк - ищем или создаем следующую строку
                         let nextRow = currentRow.nextElementSibling;
+                        console.log('Looking for next row. Found:', nextRow); // Лог поиска следующей строки
                         if (!nextRow) {
                             // Если следующей строки нет, добавляем новую
+                            console.log('Next row not found. Adding a new row.');
                             addRow(false); // Добавляем строку без фокуса
                             nextRow = tableBody.lastElementChild; // Получаем только что созданную строку
+                            console.log('New row added:', nextRow); // Лог добавленной строки
                         }
                         currentRow = nextRow; // Переключаемся на следующую строку для следующей итерации
                         targetNameInput = currentRow.querySelector('.name-input');
+                        console.log('Targeting input in row:', currentRow.rowIndex, 'Input found:', !!targetNameInput); // Лог целевого поля ввода
                     }
 
                     if (targetNameInput) {
                         targetNameInput.value = line; // Вставляем значение в поле
+                        console.log(`Pasted "${line}" into row ${currentRow.rowIndex} name input.`); // Лог вставки в поле
                         // Вызываем onNameChange для этой строки, чтобы обновить связанные данные
                         onNameChange(currentRow);
+                         console.log(`Called onNameChange for row ${currentRow.rowIndex}.`); // Лог вызова onNameChange
+                    } else {
+                         console.warn(`Target name input not found for line "${line}" in row ${currentRow ? currentRow.rowIndex : 'N/A'}.`); // Предупреждение, если поле не найдено
                     }
                 }
 
                 // После вставки всех строк, пересчитываем итог и сохраняем состояние
                 recalcTotal();
+                console.log('Recalculated total.');
                 saveAppStateToLocalStorage();
+                console.log('App state saved after paste.');
             };
             // --- КОНЕЦ НОВОГО ОБРАБОТЧИКА ---
 
@@ -904,9 +924,8 @@ function reAttachEventListenersToRows() {
             delBtn.addEventListener('click', delBtn._clickHandler);
         }
     });
-     console.log('Event listeners re-attached.');
+     console.log('Event listeners re-attached completed.');
 }
-
 // НУЖНЫ ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ-ОБЕРТКИ ДЛЯ ОБРАБОТЧИКОВ (БЕЗ ИЗМЕНЕНИЙ, КРОМЕ ВЫЗОВОВ saveAppStateToLocalStorage В onNameChange, onQtyChange, deleteRow)
 function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
     const items = suggestionsDropdown.querySelectorAll('.suggestion-item');
