@@ -780,6 +780,9 @@ function reAttachEventListenersToRows() {
             if (nameInput._blurHandler) nameInput.removeEventListener('blur', nameInput._blurHandler);
             if (nameInput._changeHandler) nameInput.removeEventListener('change', nameInput._changeHandler);
             if (nameInput._keydownHandler) nameInput.removeEventListener('keydown', nameInput._keydownHandler);
+            // Удаляем старый paste обработчик, если он был
+            if (nameInput._pasteHandler) nameInput.removeEventListener('paste', nameInput._pasteHandler);
+
 
             // Сохраняем ссылки на новые обработчики
             nameInput._inputHandler = () => updateSuggestionsUI(nameInput, suggestionsDropdown);
@@ -801,11 +804,59 @@ function reAttachEventListenersToRows() {
             };
              nameInput._keydownHandler = (e) => handleNameInputKeydown(e, nameInput, suggestionsDropdown);
 
+             // --- НОВЫЙ ОБРАБОТЧИК СОБЫТИЯ PASTE ---
+            nameInput._pasteHandler = async (event) => {
+                event.preventDefault(); // Отменяем стандартную вставку
+
+                const pasteData = event.clipboardData.getData('text');
+                const lines = pasteData.split(/\r?\n/).filter(line => line.trim() !== ''); // Разбиваем на строки, фильтруем пустые
+
+                if (lines.length === 0) return; // Если вставлены пустые данные, ничего не делаем
+
+                let currentRow = tr; // Начинаем с текущей строки
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim(); // Берем строку и убираем лишние пробелы
+
+                    let targetNameInput;
+
+                    if (i === 0) {
+                        // Для первой строки - вставляем в текущее поле
+                        targetNameInput = nameInput;
+                    } else {
+                        // Для последующих строк - ищем или создаем следующую строку
+                        let nextRow = currentRow.nextElementSibling;
+                        if (!nextRow) {
+                            // Если следующей строки нет, добавляем новую
+                            addRow(false); // Добавляем строку без фокуса
+                            nextRow = tableBody.lastElementChild; // Получаем только что созданную строку
+                        }
+                        currentRow = nextRow; // Переключаемся на следующую строку для следующей итерации
+                        targetNameInput = currentRow.querySelector('.name-input');
+                    }
+
+                    if (targetNameInput) {
+                        targetNameInput.value = line; // Вставляем значение в поле
+                        // Вызываем onNameChange для этой строки, чтобы обновить связанные данные
+                        onNameChange(currentRow);
+                    }
+                }
+
+                // После вставки всех строк, пересчитываем итог и сохраняем состояние
+                recalcTotal();
+                saveAppStateToLocalStorage();
+            };
+            // --- КОНЕЦ НОВОГО ОБРАБОТЧИКА ---
+
+
             nameInput.addEventListener('input', nameInput._inputHandler);
             nameInput.addEventListener('focus', nameInput._focusHandler);
             nameInput.addEventListener('blur', nameInput._blurHandler);
             nameInput.addEventListener('change', nameInput._changeHandler);
             nameInput.addEventListener('keydown', nameInput._keydownHandler);
+            // Привязываем новый paste обработчик
+            nameInput.addEventListener('paste', nameInput._pasteHandler);
+
 
              suggestionsDropdown.querySelectorAll('.suggestion-item').forEach(item => {
                  if (item._clickHandler) item.removeEventListener('click', item._clickHandler);
