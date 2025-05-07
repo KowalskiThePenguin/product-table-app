@@ -5,13 +5,13 @@ const RANGE       = 'A:E'; // Диапазон данных (A:E)
 
 let products = []; // Массив всех товаров
 
-// --- НОВОЕ: Хранилище состояний и метаданных видов ---
+// --- Хранилище состояний и метаданных видов ---
 // viewStates: { 'view-1': 'innerHTML_content_1', 'view-2': 'innerHTML_content_2', ... }
 let viewStates = {};
 // viewMetadata: { 'view-1': 'Название 1', 'view-2': 'Название 2', ... }
 let viewMetadata = {};
 let activeViewId = 'view-1'; // ID текущего активного вида
-let nextViewIdCounter = 1; // Счетчик для генерации ID новых видов (начнем с 1, т.к. "Список 1" уже есть)
+let nextViewIdCounter = 1; // Счетчик для генерации ID новых видов (начнем с 1, т.к. "Список 1" может существовать по умолчанию)
 
 // --- DOM Элементы ---
 const menuToggleBtn = document.getElementById('menu-toggle');
@@ -32,48 +32,37 @@ const currentViewNameElement = document.getElementById('current-view-name');
 function saveAppStateToLocalStorage() {
     console.log('Saving app state to localStorage...');
     try {
-        // --- НОВОЕ: Обновляем состояние ТЕКУЩЕГО активного вида перед сохранением ---
-
-        // 1. Обновляем атрибуты 'value' у инпутов в текущей таблице
-        // Это гарантирует, что при восстановлении innerHTML инпуты будут иметь правильные значения
+        // Обновляем атрибуты 'value' у инпутов в текущей таблице перед сохранением innerHTML
         tableBody.querySelectorAll('tr').forEach(tr => {
             const nameInput = tr.querySelector('.name-input');
             const qtyInput = tr.querySelector('.qty-input');
             if (nameInput) {
-                // Устанавливаем атрибут 'value' равным текущему значению поля
                 nameInput.setAttribute('value', nameInput.value);
-                // console.log(`Updating nameInput attribute for row ${tr.rowIndex} to:`, nameInput.value); // Лог для отладки
             }
             if (qtyInput) {
-                // Устанавливаем атрибут 'value' равным текущему значению поля
                 qtyInput.setAttribute('value', qtyInput.value);
-                 // console.log(`Updating qtyInput attribute for row ${tr.rowIndex} to:`, qtyInput.value); // Лог для отладки
             }
         });
-        // console.log('Input attributes updated before saving state.'); // Лог для отладки
 
-        // 2. Сохраняем актуальное HTML-содержимое tableBody для текущего активного вида
+        // Сохраняем актуальное HTML-содержимое tableBody для текущего активного вида
         viewStates[activeViewId] = tableBody.innerHTML;
-        // console.log(`Updated state for ${activeViewId} before saving:`, viewStates[activeViewId].substring(0, 100) + '...'); // Лог для отладки
-        // --- Конец НОВОГО блока ---
-
 
         // Собираем все данные, которые нужно сохранить
         const appState = {
             viewStates: viewStates,
-            viewMetadata: viewMetadata, // Метаданные уже обновляются в функциях rename/copy/add
-            activeViewId: activeViewId, // ActiveViewId уже обновляется в switchView
-            nextViewIdCounter: nextViewIdCounter // Счетчик уже обновляется в addNewView
+            viewMetadata: viewMetadata,
+            activeViewId: activeViewId,
+            nextViewIdCounter: nextViewIdCounter
         };
         const jsonState = JSON.stringify(appState);
         localStorage.setItem('productTableState', jsonState);
         console.log('App state saved successfully.');
     } catch (error) {
         console.error('Error saving app state to localStorage:', error);
-        // Можно добавить уведомление пользователю, если превышен лимит
-        // alert('Не удалось сохранить данные локально. Возможно, превышен лимит хранилища браузера.');
+        // Можно добавить уведомление пользователю
     }
 }
+
 function loadAppStateFromLocalStorage() {
     console.log('Loading app state from localStorage...');
     try {
@@ -93,7 +82,7 @@ function loadAppStateFromLocalStorage() {
         }
     } catch (error) {
         console.error('Error loading app state from localStorage:', error);
-        // В случае ошибки парсинга, возможно, стоит очистить localStorage или предложить пользователю
+        // В случае ошибки парсинга, возможно, стоит очистить localStorage
         // localStorage.removeItem('productTableState'); // Опционально
         // alert('Произошла ошибка при загрузке сохраненных данных.');
         return false;
@@ -101,14 +90,20 @@ function loadAppStateFromLocalStorage() {
 }
 
 
-// --- Функции форматирования и парсинга (БЕЗ ИЗМЕНЕНИЙ) ---
-function formatNumberDisplay(num) { /* ... ваш код ... */
+// --- Функции форматирования и парсинга чисел ---
+function formatNumberDisplay(num) {
     const number = parseFloat(num);
     if (isNaN(number)) return '';
-    return number.toLocaleString('ru-RU');
+    // Используем toLocaleString для форматирования чисел
+    return number.toLocaleString('ru-RU', {
+        minimumFractionDigits: 0, // Минимальное количество десятичных знаков
+        maximumFractionDigits: 2  // Максимальное количество десятичных знаков
+    });
 }
-function parseFormattedNumber(str) { /* ... ваш код ... */
+
+function parseFormattedNumber(str) {
     if (!str) return 0;
+    // Удаляем все пробелы и заменяем запятую на точку
     const cleanedString = String(str).replace(/\s/g, '').replace(',', '.');
     return parseFloat(cleanedString) || 0;
 }
@@ -128,7 +123,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// === Отслеживание статуса сети === (БЕЗ ИЗМЕНЕНИЙ)
+// === Отслеживание статуса сети ===
 const networkStatusIndicator = document.createElement('div');
 networkStatusIndicator.id = 'network-status';
 document.body.appendChild(networkStatusIndicator);
@@ -139,8 +134,6 @@ function updateNetworkStatus() {
     networkStatusIndicator.style.backgroundColor = '#d4edda'; // Зеленый фон
     networkStatusIndicator.style.color = '#155724'; // Темно-зеленый текст
      console.log('Приложение снова онлайн. Пытаемся обновить данные товаров.');
-     // Можно добавить проверку, прошло ли достаточно времени с последней загрузки,
-     // чтобы не перезагружать слишком часто
      fetchProducts(); // Повторно вызываем загрузку данных товаров
   } else {
     networkStatusIndicator.textContent = 'Оффлайн';
@@ -149,6 +142,7 @@ function updateNetworkStatus() {
   }
   networkStatusIndicator.style.display = 'block';
    if (navigator.onLine) {
+       // Скрываем индикатор онлайн статуса через несколько секунд
        setTimeout(() => {
            networkStatusIndicator.style.display = 'none';
        }, 3000);
@@ -157,11 +151,10 @@ function updateNetworkStatus() {
 
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
-// updateNetworkStatus(); // Вызывается в initializeApp
 
 
-// --- Функции для ПОЛЬЗОВАТЕЛЬСКОГО АВТОДОПОЛНЕНИЯ (БЕЗ ИЗМЕНЕНИЙ) ---
-function getFilteredProducts(inputValue) { /* ... ваш код ... */
+// --- Функции для ПОЛЬЗОВАТЕЛЬСКОГО АВТОДОПОЛНЕНИЯ ---
+function getFilteredProducts(inputValue) {
      inputValue = inputValue.trim().toLowerCase();
 
     if (!inputValue) {
@@ -169,6 +162,7 @@ function getFilteredProducts(inputValue) { /* ... ваш код ... */
     }
 
     let exactMatch = null;
+     // Сначала ищем точное совпадение по ID или названию
      if (/^\d+$/.test(inputValue)) {
         exactMatch = products.find(p => p.id && p.id.toLowerCase() === inputValue);
      }
@@ -182,12 +176,13 @@ function getFilteredProducts(inputValue) { /* ... ваш код ... */
     const containsId = [];
     const containsName = [];
 
+    // Фильтруем остальные результаты
     for (const p of products) {
+        // Пропускаем, если это точное совпадение, которое мы уже нашли
         if (exactMatch && (p.id === exactMatch.id || (!p.id && p.name === exactMatch.name))) {
              continue;
         }
 
-        const fullValueLower = `${p.id ? p.id + ' - ' : ''}${p.name}`.toLowerCase();
         const nameLower = p.name.toLowerCase();
         const idLower = p.id ? p.id.toLowerCase() : '';
 
@@ -202,17 +197,19 @@ function getFilteredProducts(inputValue) { /* ... ваш код ... */
         }
     }
 
+    // Формируем отсортированный список: точное совпадение, начинается с ID, начинается с имени, содержит ID, содержит имя
     const ordered = [];
     if (exactMatch) {
         ordered.push(exactMatch);
     }
     ordered.push(...startsWithId, ...startsWithName, ...containsId, ...containsName);
 
+    // Убираем дубликаты
     const uniqueOrdered = [];
     const seen = new Set();
 
     for (const product of ordered) {
-        const key = product.id || product.name;
+        const key = product.id || product.name; // Используем ID или имя как ключ для уникальности
         if (!seen.has(key)) {
              uniqueOrdered.push(product);
              seen.add(key);
@@ -221,52 +218,54 @@ function getFilteredProducts(inputValue) { /* ... ваш код ... */
 
     return uniqueOrdered;
 }
-function updateSuggestionsUI(nameInput, suggestionsDropdown) { /* ... ваш код ... */
+
+function updateSuggestionsUI(nameInput, suggestionsDropdown) {
      const inputValue = nameInput.value.trim();
     const filteredProducts = getFilteredProducts(inputValue);
 
-    suggestionsDropdown.innerHTML = '';
-    nameInput.removeAttribute('aria-activedescendant');
+    suggestionsDropdown.innerHTML = ''; // Очищаем предыдущие предложения
+    nameInput.removeAttribute('aria-activedescendant'); // Сбрасываем aria-атрибут
 
-
-    const limitedResults = filteredProducts.slice(0, 100);
+    const limitedResults = filteredProducts.slice(0, 100); // Ограничиваем количество результатов
 
     if (limitedResults.length > 0) {
-
         limitedResults.forEach((product, index) => {
             const itemElement = document.createElement('div');
             itemElement.classList.add('suggestion-item');
             itemElement.setAttribute('role', 'option');
-            itemElement.setAttribute('tabindex', '-1');
+            itemElement.setAttribute('tabindex', '-1'); // Делаем элемент фокусируемым, но не в обычном потоке Tab
 
+            // Генерируем ID для aria-активности
             if (!suggestionsDropdown.id) {
                  suggestionsDropdown.id = 'suggestions-dropdown-' + nameInput.closest('tr').rowIndex;
              }
             itemElement.id = `${suggestionsDropdown.id}-item-${index}`;
 
+            // Сохраняем данные о товаре в data-атрибутах
             itemElement.dataset.productId = product.id;
             itemElement.dataset.productName = product.name;
             itemElement.dataset.productUnit = product.unit;
             itemElement.dataset.productCountry = product.country;
             itemElement.dataset.productPrice = product.price;
 
-
             const mainLine = document.createElement('div');
             mainLine.classList.add('main-line');
-            mainLine.textContent = `${product.id ? product.id + ' - ' : ''}${product.name}`;
+            mainLine.textContent = `${product.id ? product.id + ' - ' : ''}${product.name}`; // Формат: ID - Название
 
             const detailsLine = document.createElement('div');
             detailsLine.classList.add('details-line');
             const formattedPrice = formatNumberDisplay(product.price);
-            detailsLine.textContent = `${product.country} · ${formattedPrice} · ${product.unit}`;
+            detailsLine.textContent = `${product.country} · ${formattedPrice} · ${product.unit}`; // Формат: Страна · Цена · Ед.изм.
 
             itemElement.appendChild(mainLine);
             itemElement.appendChild(detailsLine);
 
+             // Обработчик mousedown, чтобы предотвратить blur на input перед кликом
              itemElement.addEventListener('mousedown', () => {
                 nameInput._isSelectingSuggestion = true;
             });
 
+             // Обработчик клика по предложению
             itemElement.addEventListener('click', () => {
                 console.log('Suggestion item clicked.');
                 try {
@@ -278,23 +277,28 @@ function updateSuggestionsUI(nameInput, suggestionsDropdown) { /* ... ваш к�
                          price: parseFormattedNumber(itemElement.dataset.productPrice)
                      };
 
+                    // Устанавливаем выбранное название в поле ввода
                     nameInput.value = selectedProduct.name;
-                    console.log('Input value set by click handler:', nameInput.value);
+                    console.log('Input value set by suggestion click:', nameInput.value);
 
+                    // Вызываем onNameChange для обновления остальных ячеек строки
                     onNameChange(nameInput.closest('tr'));
 
+                    // Скрываем выпадающий список и сбрасываем флаг
+                    suggestionsDropdown.style.display = 'none';
                     nameInput._isSelectingSuggestion = false;
+
 
                 } catch (error) {
                     console.error('Error during suggestion item click handling:', error);
-                    nameInput._isSelectingSuggestion = false;
+                    nameInput._isSelectingSuggestion = false; // Важно сбросить флаг даже при ошибке
                 }
             });
-
 
             suggestionsDropdown.appendChild(itemElement);
         });
 
+        // Показываем выпадающий список и устанавливаем aria-атрибуты
         suggestionsDropdown.style.display = 'block';
         suggestionsDropdown.setAttribute('role', 'listbox');
         nameInput.setAttribute('aria-expanded', 'true');
@@ -306,21 +310,27 @@ function updateSuggestionsUI(nameInput, suggestionsDropdown) { /* ... ваш к�
          nameInput.setAttribute('aria-autocomplete', 'list');
 
     } else {
+        // Если предложений нет, скрываем список и сбрасываем aria-атрибуты
         suggestionsDropdown.style.display = 'none';
         nameInput.setAttribute('aria-expanded', 'false');
         nameInput.removeAttribute('aria-controls');
         nameInput.removeAttribute('aria-activedescendant');
-        nameInput._isSelectingSuggestion = false;
+        nameInput._isSelectingSuggestion = false; // Убеждаемся, что флаг сброшен
     }
 }
 
-// --- Функции экспорта CSV, печати, снимка (БЕЗ ИЗМЕНЕНИЙ, КРОМЕ ИМЕНИ ФАЙЛА) ---
-function escapeCsvString(str) { /* ... ваш код ... */
+
+// --- Функции экспорта CSV, печати, снимка ---
+
+function escapeCsvString(str) {
       if (str === null || str === undefined) {
         return '';
     }
     str = String(str);
+    // Экранируем двойные кавытки внутри строки двойными кавычками
     const escaped = str.replace(/"/g, '""');
+    // Оборачиваем строку в двойные кавычки, если она содержит разделитель (точка с запятой),
+    // двойные кавычки, символы новой строки или табуляции.
     if (escaped.includes(';') || escaped.includes('"') || escaped.includes('\n') || escaped.includes('\r') || escaped.includes('\t')) {
         return `"${escaped}"`;
     }
@@ -331,58 +341,67 @@ function exportTableToCsv() {
   let csv = [];
   const headerRow = productTable.querySelector('thead tr');
   if (headerRow) {
+      // Получаем текст заголовков, кроме последней колонки "Удалить"
       const existingHeaderCells = headerRow.querySelectorAll('th:not(:last-child)');
-      const existingHeaderData = Array.from(existingHeaderCells).map(th => escapeCsvString(th.textContent.trim()));
-	  const numHeader = headerRow.querySelector('th:first-child') ? escapeCsvString(headerRow.querySelector('th:first-child').textContent.trim()) : '№';
-      const headerData = [escapeCsvString("ID"), ...existingHeaderData];
+      // Формируем массив заголовков, добавляя "ID" в начало
+      const headerData = [escapeCsvString("ID"), ...Array.from(existingHeaderCells).map(th => escapeCsvString(th.textContent.trim()))];
       csv.push(headerData.join(';'));
   }
 
+  // Проходим по всем строкам тела таблицы
   tableBody.querySelectorAll('tr').forEach(tr => {
       const cells = tr.querySelectorAll('td');
       const nameInput = tr.querySelector('.name-input');
       const qtyInput = tr.querySelector('.qty-input');
 
+      // Проверяем, что строка содержит достаточно ячеек и нужные поля ввода
       if (cells.length >= 7 && nameInput && qtyInput) {
+          // Получаем данные из data-атрибута или поля ввода
           const productId = tr.dataset.productId || '';
           const name = nameInput.value || '';
           const unit = cells[2] ? cells[2].textContent.trim() : '';
           const country = cells[3] ? cells[3].textContent.trim() : '';
-          const qtyStr = (qtyInput.value || '0').replace(',', '.');
-          const priceStr = (cells[5] ? cells[5].dataset.price || '0' : '0').replace(',', '.');
-          const sumStr = (cells[6] ? cells[6].dataset.sum || '0' : '0').replace(',', '.');
+          // Получаем значение количества и цены, заменяем точку на запятую для CSV
+          const qtyStr = (qtyInput.value || '').replace('.', ',');
+          const priceStr = (cells[5] ? cells[5].dataset.price || '0' : '0').replace('.', ',');
+          const sumStr = (cells[6] ? cells[6].dataset.sum || '0' : '0').replace('.', ',');
 
+          // Формируем строку CSV для текущей строки таблицы
           const rowCsv = [
               escapeCsvString(productId),
-			  escapeCsvString(cells[0] ? cells[0].textContent.trim() : ''), // <--- ДОБАВЛЕНО
+			  escapeCsvString(cells[0] ? cells[0].textContent.trim() : ''), // Номер строки
               escapeCsvString(name),
               escapeCsvString(unit),
               escapeCsvString(country),
-              escapeCsvString(qtyStr.replace('.', ',')),
-              escapeCsvString(priceStr.replace('.', ',')),
-              escapeCsvString(sumStr.replace('.', ','))
+              escapeCsvString(qtyStr),
+              escapeCsvString(priceStr),
+              escapeCsvString(sumStr)
           ];
           csv.push(rowCsv.join(';'));
       }
   });
 
+  // Добавляем строку итоговой суммы в CSV
   const footerRow = productTable.querySelector('tfoot tr');
   if (footerRow) {
       const footerCells = footerRow.querySelectorAll('td');
       const totalFooterData = [];
-      const exportColumnCount = 7;
+      const exportColumnCount = 7; // Ожидаемое количество колонок в экспорте (ID, №, Название, Ед.изм, Страна, Кол-во, Цена, Сумма)
 
-      if (footerCells[1]) {
+      // Добавляем текст "Итого" или из первой ячейки подвала
+      if (footerCells[1]) { // Предполагаем, что "Итого" во второй ячейке подвала
            totalFooterData.push(escapeCsvString(footerCells[1].textContent.trim()));
       } else {
            totalFooterData.push('');
       }
 
-      const emptyCellsCount = exportColumnCount - 2;
+      // Добавляем пустые ячейки до колонки с суммой
+      const emptyCellsCount = exportColumnCount - 2; // От общего числа колонок вычитаем "Итого" и "Сумма"
       for(let i = 0; i < emptyCellsCount; i++) {
            totalFooterData.push('');
       }
 
+       // Добавляем итоговую сумму
        if (totalSumCell) {
             const totalSumValue = String(parseFloat(totalSumCell.dataset.total || 0)).replace('.', ',');
             totalFooterData.push(escapeCsvString(totalSumValue));
@@ -393,48 +412,49 @@ function exportTableToCsv() {
        csv.push(totalFooterData.join(';'));
   }
 
-  const csvString = csv.join('\r\n');
-  const BOM = '\uFEFF';
+
+  const csvString = csv.join('\r\n'); // Объединяем строки с символами новой строки
+  const BOM = '\uFEFF'; // Добавляем BOM для корректного отображения кириллицы в Excel
   const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
 
-  // --- Имя файла берем из viewMetadata ---
+  // Имя файла берем из viewMetadata и очищаем от недопустимых символов
   const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
   const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}.csv`;
-  // --- Конец изменения ---
 
   link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  document.body.appendChild(link); // Добавляем ссылку в DOM временно
+  link.click(); // Имитируем клик по ссылке для скачивания
+  document.body.removeChild(link); // Удаляем ссылку из DOM
+  URL.revokeObjectURL(url); // Освобождаем память
   console.log(`Table for view '${viewName}' exported to CSV.`);
 }
+
 function printTable() {
-    // Получаем элемент для даты
+    // Получаем элемент для даты в шапке для печати
     const dateElement = document.querySelector('.print-header-text .print-date');
-    let originalDateText = ''; // Сохраняем исходное содержимое, если вдруг оно было
+    let originalDateText = ''; // Сохраняем исходное содержимое
 
     if (dateElement) {
-        originalDateText = dateElement.textContent; // Сохраняем
+        originalDateText = dateElement.textContent; // Сохраняем текущий текст
         const today = new Date();
-        // Форматируем дату как "3 мая 2025 г."
+        // Форматируем текущую дату
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         const formattedDate = today.toLocaleDateString('ru-RU', options);
         dateElement.textContent = formattedDate; // Вставляем текущую дату
         console.log('Вставлена дата для печати:', formattedDate);
     }
 
-    // Вызываем печать
+    // Вызываем стандартное окно печати браузера
     window.print();
 
-    // Очищаем элемент даты после завершения печати
+    // Очищаем или восстанавливаем элемент даты после завершения печати
     if (dateElement) {
-        // Задержка нужна, потому что window.print может не блокировать выполнение скрипта полностью
+        // Небольшая задержка нужна, потому что window.print асинхронна
         setTimeout(() => {
-             dateElement.textContent = originalDateText; // Восстанавливаем или очищаем
+             dateElement.textContent = originalDateText; // Восстанавливаем исходный текст (или очищаем)
              console.log('Очищена дата после печати.');
         }, 100); // Небольшая задержка
     }
@@ -442,6 +462,7 @@ function printTable() {
 
 function captureTableSnapshot() {
     const elementToCapture = document.getElementById('main-content');
+    // Находим кнопки действий, чтобы скрыть их на снимке
     const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
 
     if (!elementToCapture) {
@@ -452,10 +473,12 @@ function captureTableSnapshot() {
 
     console.log('Попытка создать снимок контейнера...');
 
+    // Временно скрываем кнопки действий
     if (actionButtonsElement) {
         actionButtonsElement.style.display = 'none';
     }
 
+    // Временно скрываем колонку "Удалить" в шапке, теле и подвале
     const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
     const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
     const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
@@ -464,31 +487,32 @@ function captureTableSnapshot() {
     actionCells.forEach(td => td.style.display = 'none');
     if (footerActionCell) footerActionCell.style.display = 'none';
 
+    // Используем html2canvas для создания снимка
     html2canvas(elementToCapture, {
-        scale: 2,
-        logging: true,
-        useCORS: true
+        scale: 2, // Увеличиваем масштаб для лучшего качества
+        logging: true, // Включаем логирование html2canvas
+        useCORS: true // Разрешаем использование CORS для изображений (если есть)
     }).then(canvas => {
         console.log('Снимок успешно создан на Canvas.');
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = dataUrl;
+        const dataUrl = canvas.toDataURL('image/png'); // Преобразуем canvas в формат PNG
+        const link = document.createElement('a'); // Создаем временную ссылку
+        link.href = dataUrl; // Устанавливаем данные снимка как href ссылки
 
-        // --- Имя файла берем из viewMetadata ---
+        // Имя файла берем из viewMetadata и очищаем от недопустимых символов, добавляем суффикс
         const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
         const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
-        // --- Конец изменения ---
 
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.setAttribute('download', filename); // Устанавливаем имя файла для скачивания
+        document.body.appendChild(link); // Добавляем ссылку в DOM
+        link.click(); // Имитируем клик для скачивания
+        document.body.removeChild(link); // Удаляем ссылку
         console.log('Снимок захвачен, инициировано скачивание.');
 
     }).catch(error => {
         console.error('Ошибка при создании снимка:', error);
         alert('Произошла ошибка при создании снимка.');
     }).finally(() => {
+        // Восстанавливаем скрытые элементы после создания снимка
         if (actionButtonsElement) {
              actionButtonsElement.style.display = '';
         }
@@ -498,8 +522,9 @@ function captureTableSnapshot() {
     });
 }
 
-// --- Функции для работы с данными Google Sheets (БЕЗ ИЗМЕНЕНИЙ) ---
-async function fetchProducts() { /* ... ваш код ... */
+
+// --- Функции для работы с данными Google Sheets ---
+async function fetchProducts() {
    try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
     const res = await fetch(url);
@@ -509,14 +534,14 @@ async function fetchProducts() { /* ... ваш код ... */
     }
     const json = await res.json();
     if (json.values && Array.isArray(json.values)) {
-        const dataRows = json.values.slice(1); // Пропускаем заголовок
+        const dataRows = json.values.slice(1); // Пропускаем заголовок строки
         products = dataRows.map(r => ({
           id:      r[0] ? String(r[0]).trim() : '', // ID товара
           name:    r[1] ? String(r[1]).trim() : 'Без названия', // Название
           unit:    r[2] ? String(r[2]).trim() : '', // Единица измерения
           country: r[3] ? String(r[3]).trim() : '', // Страна
           price:   parseFormattedNumber(r[4]) // Цена (парсим сразу)
-        })).filter(p => p.name !== 'Без названия' && p.name !== ''); // Фильтруем пустые или некорректные
+        })).filter(p => p.name !== 'Без названия' && p.name !== ''); // Фильтруем пустые или некорректные названия
 
         console.log('Products fetched:', products);
     } else {
@@ -531,6 +556,7 @@ async function fetchProducts() { /* ... ваш код ... */
 
 // --- Функции для работы со строками таблицы ---
 function addRow(focusLastNameInput = true) {
+   console.log('Adding a new row...'); // Лог вызова addRow
    const tr = document.createElement('tr');
     const rowCount = tableBody.rows.length;
 
@@ -553,13 +579,11 @@ function addRow(focusLastNameInput = true) {
     const nameInput = tr.querySelector('.name-input');
     const qtyInput = tr.querySelector('.qty-input');
     const delBtn = tr.querySelector('.delete-btn');
-    // const priceCell = tr.querySelector('.price-cell'); // Не используется напрямую здесь
-    // const sumCell = tr.querySelector('.sum-cell'); // Не используется напрямую здесь
     const suggestionsDropdown = tr.querySelector('.suggestions-dropdown');
 
     nameInput._isSelectingSuggestion = false;
 
-    // --- ОБРАБОТЧИКИ ДЛЯ ПОЛЬЗОВАТЕЛЬСКОГО АВТОДОПОЛНЕНИЯ ---
+    // --- ОБРАБОТЧИКИ ДЛЯ ПОЛЯ НАИМЕНОВАНИЯ (БЕЗ PASTE - PASTE ДЕЛЕГИРОВАН) ---
     nameInput.addEventListener('input', () => updateSuggestionsUI(nameInput, suggestionsDropdown));
     nameInput.addEventListener('focus', () => { updateSuggestionsUI(nameInput, suggestionsDropdown); });
     nameInput.addEventListener('blur', (e) => {
@@ -571,28 +595,27 @@ function addRow(focusLastNameInput = true) {
             } else {
                  nameInput._isSelectingSuggestion = false;
             }
-        }, 150);
+        }, 150); // Небольшая задержка, чтобы клик по предложению успел сработать до blur
     });
     nameInput.addEventListener('change', () => {
          if (nameInput.value.trim() !== '') {
-             qtyInput.focus();
+             qtyInput.focus(); // Переводим фокус на поле количества после выбора названия
          }
-         // Вызываем saveDataToLocalStorage после изменения имени
-         saveDataToLocalStorage();
+         saveAppStateToLocalStorage(); // Сохраняем после изменения имени
     });
-
-
+    // Обработчики для клавиатуры (стрелки, Enter, Escape, Tab) для автодополнения
     nameInput.addEventListener('keydown', (e) => handleNameInputKeydown(e, nameInput, suggestionsDropdown));
 
-    // --- ОБРАБОТЧИКИ ДЛЯ ПОЛЯ КОЛИЧЕСТВА ---
+
+    // --- ОБРАБОТЧИКИ ДЛЯ ПОЛЯ КОЛИЧЕСТВА (БЕЗ PASTE - PASTE ДЕЛЕГИРОВАН) ---
     qtyInput.addEventListener('input', () => onQtyChange(tr));
     qtyInput.addEventListener('blur', () => {
         const sanitizedString = sanitizeQtyInput(qtyInput);
         const finalQty = parseFormattedNumber(sanitizedString);
-        qtyInput.value = finalQty > 0 ? formatNumberDisplay(finalQty) : '';
-        onQtyChange(tr);
-        // Вызываем saveDataToLocalStorage после изменения количества
-        saveDataToLocalStorage();
+        // Форматируем значение при потере фокуса
+        qtyInput.value = finalQty > 0 ? formatNumberDisplay(finalQty) : (sanitizedString === '0.' ? '0.' : '');
+        onQtyChange(tr); // Пересчитываем после форматирования
+        saveAppStateToLocalStorage(); // Сохраняем после изменения количества
     });
     // Запрет ввода нечисловых символов (кроме точки/запятой и управляющих клавиш)
     qtyInput.addEventListener('keydown', e => handleQtyInputKeydownNum(e));
@@ -603,26 +626,31 @@ function addRow(focusLastNameInput = true) {
     // --- ОБРАБОТЧИК УДАЛЕНИЯ СТРОКИ ---
     delBtn.addEventListener('click', () => {
         deleteRow(tr);
-        // Вызываем saveDataToLocalStorage после удаления строки
         saveAppStateToLocalStorage();
     });
 
     tableBody.appendChild(tr);
 
+    // Устанавливаем фокус на nameInput первой новой строки по умолчанию
     if (focusLastNameInput) {
         setTimeout(() => {
             nameInput.focus();
         }, 0);
     }
+     console.log('Row added. Row count:', tableBody.rows.length);
+     return tr; // Возвращаем добавленную строку
 }
+
 function onNameChange(tr) {
    let input = tr.querySelector('.name-input');
     let inputValue = input ? input.value.trim() : '';
     let product = null;
 
     if (inputValue) {
+         // Сначала ищем по точному совпадению названия
          product = products.find(p => p.name.toLowerCase() === inputValue.toLowerCase());
 
+         // Если не нашли по названию, и ввод похож на ID (состоит только из цифр), ищем по ID
          if (!product && /^\d+$/.test(inputValue)) {
              product = products.find(p => p.id && p.id.trim() === inputValue.trim());
          }
@@ -635,29 +663,32 @@ function onNameChange(tr) {
     const sumCell = tr.querySelector('.sum-cell');
 
     if (product) {
-        tr.dataset.productId = product.id;
-        input.value = product.name;
-        unitCell.textContent = product.unit;
+        tr.dataset.productId = product.id; // Сохраняем ID товара в data-атрибуте строки
+        input.value = product.name; // Устанавливаем полное название товара в поле ввода
+        unitCell.textContent = product.unit; // Обновляем ячейки с данными о товаре
         countryCell.textContent = product.country;
-        priceCell.dataset.price = product.price;
-        priceCell.textContent = formatNumberDisplay(product.price);
+        priceCell.dataset.price = product.price; // Сохраняем цену в data-атрибуте
+        priceCell.textContent = formatNumberDisplay(product.price); // Отображаем отформатированную цену
 
+        // Сбрасываем количество и сумму при выборе нового товара
         qtyInput.value = '';
         sumCell.dataset.sum = 0;
         sumCell.textContent = formatNumberDisplay(0);
 
-        onQtyChange(tr);
+        onQtyChange(tr); // Пересчитываем сумму (хотя она будет 0) и обновляем итог
 
-        input.classList.remove('input-error');
+        input.classList.remove('input-error'); // Убираем класс ошибки, если товар найден
 
     } else {
-        delete tr.dataset.productId;
-        if (inputValue !== '') {
+        // Если товар не найден по введенному значению
+        delete tr.dataset.productId; // Удаляем data-атрибут ID
+        // Очищаем остальные ячейки строки
+        if (inputValue !== '') { // Очищаем, только если в поле было что-то введено
              unitCell.textContent = '';
              countryCell.textContent = '';
              priceCell.dataset.price = 0;
              priceCell.textContent = formatNumberDisplay(0);
-         } else {
+         } else { // Если поле было пустым, просто убеждаемся, что другие ячейки пусты
              unitCell.textContent = '';
              countryCell.textContent = '';
              priceCell.dataset.price = 0;
@@ -666,34 +697,43 @@ function onNameChange(tr) {
          qtyInput.value = '';
          sumCell.dataset.sum = 0;
          sumCell.textContent = formatNumberDisplay(0);
-         onQtyChange(tr);
+         onQtyChange(tr); // Пересчитываем сумму (будет 0) и обновляем итог
+
+         // Добавляем класс ошибки, если в поле что-то введено, но товар не найден
+         if (inputValue !== '') {
+            input.classList.add('input-error');
+         } else {
+            input.classList.remove('input-error');
+         }
     }
-    recalcTotal();
-    // Вызываем saveAppStateToLocalStorage после каждого изменения в строке
-    saveAppStateToLocalStorage();
+    recalcTotal(); // Пересчитываем общую сумму
+    saveAppStateToLocalStorage(); // Сохраняем состояние
 }
+
 function onQtyChange(tr) {
     const qtyInput = tr.querySelector('.qty-input');
     const priceCell = tr.querySelector('.price-cell');
     const sumCell = tr.querySelector('.sum-cell');
 
-    const price = parseFloat(priceCell.dataset.price) || 0;
-    const quantity = parseFormattedNumber(qtyInput.value);
+    const price = parseFloat(priceCell.dataset.price) || 0; // Получаем цену из data-атрибута
+    const quantity = parseFormattedNumber(qtyInput.value); // Парсим количество из поля ввода
 
-    const sum = price * quantity;
+    const sum = price * quantity; // Рассчитываем сумму
 
-    sumCell.dataset.sum = sum;
-    sumCell.textContent = formatNumberDisplay(sum);
+    sumCell.dataset.sum = sum; // Сохраняем сумму в data-атрибуте
+    sumCell.textContent = formatNumberDisplay(sum); // Отображаем отформатированную сумму
 
-    recalcTotal();
-    // Вызываем saveAppStateToLocalStorage после каждого изменения в строке
-    saveAppStateToLocalStorage();
+    recalcTotal(); // Пересчитываем общую сумму
+    saveAppStateToLocalStorage(); // Сохраняем состояние
 }
+
 function deleteRow(tr) {
+    // Если строк больше одной, удаляем текущую
     if (tableBody.rows.length > 1) {
-        tr.remove();
-        renumberRows();
+        tr.remove(); // Удаляем элемент строки из DOM
+        renumberRows(); // Перенумеровываем оставшиеся строки
     } else {
+        // Если это единственная строка, просто очищаем ее поля
         const nameInput = tr.querySelector('.name-input');
         const qtyInput = tr.querySelector('.qty-input');
         const unitCell = tr.querySelector('.unit-cell');
@@ -707,13 +747,17 @@ function deleteRow(tr) {
         if(countryCell) countryCell.textContent = '';
         if(priceCell) { priceCell.dataset.price = 0; priceCell.textContent = formatNumberDisplay(0); }
         if(sumCell) { sumCell.dataset.sum = 0; sumCell.textContent = formatNumberDisplay(0); }
-        delete tr.dataset.productId;
+        delete tr.dataset.productId; // Удаляем ID товара
+
+        // Убираем класс ошибки, если он был
+        if (nameInput) nameInput.classList.remove('input-error');
     }
-    recalcTotal();
-    // Вызываем saveAppStateToLocalStorage после удаления строки
-    saveAppStateToLocalStorage();
+    recalcTotal(); // Пересчитываем общую сумму
+    saveAppStateToLocalStorage(); // Сохраняем состояние
 }
-function renumberRows() { /* ... ваш код ... */
+
+function renumberRows() {
+   // Обновляем номера строк в первой колонке
    tableBody.querySelectorAll('tr').forEach((tr, i) => {
     const rowNumCell = tr.querySelector('.row-num');
     if (rowNumCell) {
@@ -721,68 +765,78 @@ function renumberRows() { /* ... ваш код ... */
     }
   });
 }
-function recalcTotal() { /* ... ваш код ... */
+
+function recalcTotal() {
+   // Рассчитываем общую сумму по всем строкам
    const sumCells = tableBody.querySelectorAll('.sum-cell');
   let total = 0;
 
   sumCells.forEach(td => {
-    total += parseFloat(td.dataset.sum) || 0;
+    total += parseFloat(td.dataset.sum) || 0; // Суммируем значения из data-атрибутов
   });
 
-  totalSumCell.dataset.total = total;
-  totalSumCell.textContent = formatNumberDisplay(total);
+  totalSumCell.dataset.total = total; // Сохраняем общую сумму в data-атрибуте
+  totalSumCell.textContent = formatNumberDisplay(total); // Отображаем отформатированную общую сумму
 }
-function sanitizeQtyInput(qtyInput) { /* ... ваш код ... */
+
+function sanitizeQtyInput(qtyInput) {
      let v = qtyInput.value.trim();
     if (v === '') return '';
 
-    v = v.replace(',', '.');
-    v = v.replace(/[^0-9.]/g, '');
-    v = v.replace(/^0+(?=\d)/, '');
+    v = v.replace(',', '.'); // Заменяем запятую на точку
+    v = v.replace(/[^0-9.]/g, ''); // Удаляем все, кроме цифр и точки
+    v = v.replace(/^0+(?=\d)/, ''); // Удаляем начальные нули, если за ними следует цифра (например, 007 -> 7)
 
+    // Обработка множественных точек
     const parts = v.split('.');
     if (parts.length > 2) {
-        v = parts[0] + '.' + parts.slice(1).join('');
+        v = parts[0] + '.' + parts.slice(1).join(''); // Оставляем только первую точку
     }
 
+    // Если осталась только точка или нули с точкой (например, "."), преобразуем в "0."
     if (v === '.' || /^0*\.$/.test(v)) v = '0.';
 
-    if (v.endsWith('.') && v.length > 1 && /\d/.test(v.slice(0, -1))) {
-    } else if (v.endsWith('.')) {
-        if (v.length > 1) v = v.slice(0, -1);
-        else v = '';
-    }
+    // Если строка заканчивается на точку и перед ней нет цифр (например, "abc."), удаляем точку
+     if (v.endsWith('.') && v.length > 1 && !/\d/.test(v.slice(0, -1))) {
+         v = v.slice(0, -1);
+     } else if (v.endsWith('.') && v.length === 1 && v[0] !== '0') { // Если осталась только одна точка не после нуля
+         v = ''; // Очищаем
+     }
 
-    if (v !== '' && parseFloat(v) === 0) {
-        const originalValue = qtyInput.value.trim().replace(',', '.');
-        if (/^0+\.?0*$/.test(originalValue) && v !== '0.') {
-            v = '';
-        }
-    }
+
+    // Дополнительная проверка для случая "0" или "0."
+     if (v !== '' && parseFloat(v) === 0) {
+         const originalValue = qtyInput.value.trim().replace(',', '.');
+         // Если исходное значение было просто "0" или "0.", и результат не "0.", очищаем
+         if (/^0+\.?0*$/.test(originalValue) && v !== '0.') {
+             v = '';
+         }
+     }
+
 
   return v;
 }
 
-// --- Функции для повторной привязки обработчиков (БЕЗ ИЗМЕНЕНИЙ) ---
+
+// --- Функции для повторной привязки обработчиков (НЕ ВКЛЮЧАЯ PASTE) ---
 function reAttachEventListenersToRows() {
-    console.log('Re-attaching event listeners to rows...');
+    console.log('Re-attaching non-paste event listeners to rows...');
     tableBody.querySelectorAll('tr').forEach(tr => {
         const nameInput = tr.querySelector('.name-input');
         const qtyInput = tr.querySelector('.qty-input');
         const delBtn = tr.querySelector('.delete-btn');
         const suggestionsDropdown = tr.querySelector('.suggestions-dropdown');
 
-        // Удаляем старые и добавляем новые
+        // Удаляем старые и добавляем новые НЕ-PASTE обработчики для nameInput
         if (nameInput && suggestionsDropdown) {
-            console.log('Attaching listeners to nameInput in row:', tr.rowIndex); // Лог привязки
-            // Важно: Удаляем с помощью сохраненных ссылок, если они есть
+            console.log('Attaching non-paste listeners to nameInput in row:', tr.rowIndex);
             if (nameInput._inputHandler) nameInput.removeEventListener('input', nameInput._inputHandler);
             if (nameInput._focusHandler) nameInput.removeEventListener('focus', nameInput._focusHandler);
             if (nameInput._blurHandler) nameInput.removeEventListener('blur', nameInput._blurHandler);
             if (nameInput._changeHandler) nameInput.removeEventListener('change', nameInput._changeHandler);
             if (nameInput._keydownHandler) nameInput.removeEventListener('keydown', nameInput._keydownHandler);
-            // Удаляем старый paste обработчик, если он был
-            if (nameInput._pasteHandler) nameInput.removeEventListener('paste', nameInput._pasteHandler);
+             // Убедимся, что _pasteHandler не сохраняется в этом scope
+            delete nameInput._pasteHandler;
 
 
             // Сохраняем ссылки на новые обработчики
@@ -795,89 +849,25 @@ function reAttachEventListenersToRows() {
                         nameInput.setAttribute('aria-expanded', 'false');
                         onNameChange(tr);
                     } else {
-                        nameInput._isSelectingSuggestion = false;
+                         nameInput._isSelectingSuggestion = false;
                     }
                 }, 150);
             };
              nameInput._changeHandler = () => {
                  if (nameInput.value.trim() !== '') { qtyInput.focus(); }
-                 saveAppStateToLocalStorage(); // Сохраняем после изменения имени
+                 saveAppStateToLocalStorage();
             };
              nameInput._keydownHandler = (e) => handleNameInputKeydown(e, nameInput, suggestionsDropdown);
 
-             // --- НОВЫЙ ОБРАБОТЧИК СОБЫТИЯ PASTE ---
-            nameInput._pasteHandler = async (event) => {
-                event.preventDefault(); // Отменяем стандартную вставку
-                console.log('Paste event triggered.'); // Лог срабатывания события
 
-                const pasteData = event.clipboardData.getData('text');
-                console.log('Pasted data:', pasteData); // Лог сырых данных из буфера обмена
-                const lines = pasteData.split(/\r?\n/).filter(line => line.trim() !== ''); // Разбиваем на строки, фильтруем пустые
-                console.log('Split lines:', lines); // Лог массива строк после разделения
-
-                if (lines.length === 0) {
-                    console.log('No valid lines to paste.');
-                    return; // Если вставлены пустые данные, ничего не делаем
-                }
-
-                let currentRow = tr; // Начинаем с текущей строки, куда вставили
-                console.log('Starting paste from row:', currentRow.rowIndex); // Лог начальной строки
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim(); // Берем строку и убираем лишние пробелы
-                    console.log(`Processing line ${i + 1}/${lines.length}: "${line}"`); // Лог текущей обрабатываемой строки
-
-                    let targetNameInput;
-
-                    if (i === 0) {
-                        // Для первой строки - вставляем в текущее поле
-                        targetNameInput = nameInput;
-                        console.log('Targeting current input for first line.');
-                    } else {
-                        // Для последующих строк - ищем или создаем следующую строку
-                        let nextRow = currentRow.nextElementSibling;
-                        console.log('Looking for next row. Found:', nextRow); // Лог поиска следующей строки
-                        if (!nextRow) {
-                            // Если следующей строки нет, добавляем новую
-                            console.log('Next row not found. Adding a new row.');
-                            addRow(false); // Добавляем строку без фокуса
-                            nextRow = tableBody.lastElementChild; // Получаем только что созданную строку
-                            console.log('New row added:', nextRow); // Лог добавленной строки
-                        }
-                        currentRow = nextRow; // Переключаемся на следующую строку для следующей итерации
-                        targetNameInput = currentRow.querySelector('.name-input');
-                        console.log('Targeting input in row:', currentRow.rowIndex, 'Input found:', !!targetNameInput); // Лог целевого поля ввода
-                    }
-
-                    if (targetNameInput) {
-                        targetNameInput.value = line; // Вставляем значение в поле
-                        console.log(`Pasted "${line}" into row ${currentRow.rowIndex} name input.`); // Лог вставки в поле
-                        // Вызываем onNameChange для этой строки, чтобы обновить связанные данные
-                        onNameChange(currentRow);
-                         console.log(`Called onNameChange for row ${currentRow.rowIndex}.`); // Лог вызова onNameChange
-                    } else {
-                         console.warn(`Target name input not found for line "${line}" in row ${currentRow ? currentRow.rowIndex : 'N/A'}.`); // Предупреждение, если поле не найдено
-                    }
-                }
-
-                // После вставки всех строк, пересчитываем итог и сохраняем состояние
-                recalcTotal();
-                console.log('Recalculated total.');
-                saveAppStateToLocalStorage();
-                console.log('App state saved after paste.');
-            };
-            // --- КОНЕЦ НОВОГО ОБРАБОТЧИКА ---
-
-
+            // Привязываем НЕ-PASTE обработчики
             nameInput.addEventListener('input', nameInput._inputHandler);
             nameInput.addEventListener('focus', nameInput._focusHandler);
             nameInput.addEventListener('blur', nameInput._blurHandler);
             nameInput.addEventListener('change', nameInput._changeHandler);
             nameInput.addEventListener('keydown', nameInput._keydownHandler);
-            // Привязываем новый paste обработчик
-            nameInput.addEventListener('paste', nameInput._pasteHandler);
 
-
+            // Привязываем обработчики к элементам предложений (если они есть)
              suggestionsDropdown.querySelectorAll('.suggestion-item').forEach(item => {
                  if (item._clickHandler) item.removeEventListener('click', item._clickHandler);
                  if (item._mousedownHandler) item.removeEventListener('mousedown', item._mousedownHandler);
@@ -888,45 +878,54 @@ function reAttachEventListenersToRows() {
                  item.addEventListener('click', item._clickHandler);
                  item.addEventListener('mousedown', item._mousedownHandler);
              });
-
         }
 
+        // Удаляем старые и добавляем новые НЕ-PASTE обработчики для qtyInput
         if (qtyInput) {
+             console.log('Attaching non-paste listeners to qtyInput in row:', tr.rowIndex);
              if (qtyInput._inputHandler) qtyInput.removeEventListener('input', qtyInput._inputHandler);
              if (qtyInput._blurHandler) qtyInput.removeEventListener('blur', qtyInput._blurHandler);
              if (qtyInput._keydownNumHandler) qtyInput.removeEventListener('keydown', qtyInput._keydownNumHandler);
              if (qtyInput._keydownNavHandler) qtyInput.removeEventListener('keydown', qtyInput._keydownNavHandler);
+            // Убедимся, что _pasteHandler не сохраняется в этом scope
+            delete qtyInput._pasteHandler;
 
 
              qtyInput._inputHandler = () => onQtyChange(tr);
              qtyInput._blurHandler = () => {
                 const sanitizedString = sanitizeQtyInput(qtyInput);
                 const finalQty = parseFormattedNumber(sanitizedString);
-                qtyInput.value = finalQty > 0 ? formatNumberDisplay(finalQty) : '';
+                qtyInput.value = finalQty > 0 ? formatNumberDisplay(finalQty) : (sanitizedString === '0.' ? '0.' : '');
                 onQtyChange(tr);
-                saveAppStateToLocalStorage(); // Сохраняем после изменения количества
+                saveAppStateToLocalStorage();
             };
              qtyInput._keydownNumHandler = (e) => handleQtyInputKeydownNum(e);
              qtyInput._keydownNavHandler = (e) => handleQtyInputKeydownNav(e, tr, qtyInput);
 
+             // Привязываем НЕ-PASTE обработчики
              qtyInput.addEventListener('input', qtyInput._inputHandler);
              qtyInput.addEventListener('blur', qtyInput._blurHandler);
              qtyInput.addEventListener('keydown', qtyInput._keydownNumHandler);
              qtyInput.addEventListener('keydown', qtyInput._keydownNavHandler);
+
+             console.log('Non-paste listeners ADDED to qtyInput in row:', tr.rowIndex, qtyInput);
         }
 
+        // Удаляем старые и добавляем новые обработчики для кнопки удаления
         if (delBtn) {
             if (delBtn._clickHandler) delBtn.removeEventListener('click', delBtn._clickHandler);
             delBtn._clickHandler = () => {
                  deleteRow(tr);
-                 saveAppStateToLocalStorage(); // Сохраняем после удаления
+                 saveAppStateToLocalStorage();
              };
             delBtn.addEventListener('click', delBtn._clickHandler);
         }
     });
-     console.log('Event listeners re-attached completed.');
+     console.log('Non-paste event listeners re-attached completed.');
 }
-// НУЖНЫ ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ-ОБЕРТКИ ДЛЯ ОБРАБОТЧИКОВ (БЕЗ ИЗМЕНЕНИЙ, КРОМЕ ВЫЗОВОВ saveAppStateToLocalStorage В onNameChange, onQtyChange, deleteRow)
+
+
+// НУЖНЫ ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ-ОБЕРТКИ ДЛЯ ОБРАБОТЧИКОВ КЛАВИАТУРЫ И АВТОДОПОЛНЕНИЯ
 function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
     const items = suggestionsDropdown.querySelectorAll('.suggestion-item');
     let currentActiveIndex = -1;
@@ -959,7 +958,13 @@ function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
         case 'Enter':
             if (currentActive) {
                 e.preventDefault();
-                currentActive.click();
+                currentActive.click(); // Имитируем клик по выбранному предложению
+            } else if (nameInput.value.trim() !== '') {
+                 e.preventDefault();
+                 // Если нет активного предложения, но есть введенный текст, переходим к полю количества
+                 const tr = nameInput.closest('tr');
+                 const qtyInput = tr.querySelector('.qty-input');
+                 if(qtyInput) qtyInput.focus();
             }
             break;
         case 'Escape':
@@ -968,6 +973,7 @@ function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
              nameInput.removeAttribute('aria-activedescendant');
             break;
         case 'Tab':
+             // Таб также должен закрывать предложения перед переходом
             suggestionsDropdown.style.display = 'none';
             nameInput.setAttribute('aria-expanded', 'false');
              nameInput.removeAttribute('aria-activedescendant');
@@ -975,6 +981,7 @@ function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
     }
 }
 
+// Обработчик клика по предложению для повторно привязанных слушателей
 function handleSuggestionClick(itemElement, nameInput, tr) {
     console.log('Re-attached suggestion item clicked.');
      try {
@@ -986,36 +993,44 @@ function handleSuggestionClick(itemElement, nameInput, tr) {
              price: parseFormattedNumber(itemElement.dataset.productPrice)
          };
          nameInput.value = selectedProduct.name;
-         onNameChange(tr);
-         nameInput._isSelectingSuggestion = false;
+         onNameChange(tr); // Обновляем строку
+         nameInput._isSelectingSuggestion = false; // Сбрасываем флаг
      } catch (error) {
          console.error('Error during re-attached suggestion click:', error);
          nameInput._isSelectingSuggestion = false;
      }
 }
 
+// Обработчик ввода символов для поля количества (разрешает только числа, точку, запятую)
 function handleQtyInputKeydownNum(e) {
-     const allowedKeys = ['0','1','2','3','4','5','6','7','8','9','. ',',','Backspace','ArrowLeft','ArrowRight','Delete'];
+     // Разрешенные клавиши: цифры, точка, запятая, Backspace, стрелки, Delete, Ctrl+C/V/X/A/Z
+     const allowedKeys = ['0','1','2','3','4','5','6','7','8','9','. ',',','Backspace','ArrowLeft','ArrowRight','Delete','Tab','Enter'];
+     // Разрешаем стандартные сочетания с Ctrl/Cmd
      if (e.ctrlKey || e.metaKey) {
          if (['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) return;
      }
-     if (!allowedKeys.includes(e.key) && e.key !== 'Enter' && e.key !== 'Tab') {
+     // Если клавиша не разрешена и это не управляющая клавиша, предотвращаем действие
+     if (!allowedKeys.includes(e.key) && e.key.length === 1) {
          e.preventDefault();
      }
 }
 
+// Обработчик нажатия Enter/Tab для поля количества (переход на следующую строку)
 async function handleQtyInputKeydownNav(e, tr, qtyInput) {
      if (e.key === 'Enter' || e.key === 'Tab') {
          e.preventDefault();
          const nextRow = tr.nextElementSibling;
          if (!nextRow) {
-             addRow(true);
+             // Если текущая строка последняя, добавляем новую и фокусируем ее поле имени
+             const newRow = addRow(true); // addRow(true) фокусирует nameInput новой строки
          } else {
+             // Если следующая строка существует, фокусируем ее поле имени
              const nextNameInput = nextRow.querySelector('.name-input');
              if (nextNameInput) nextNameInput.focus();
          }
      }
 }
+
 
 // --- Функции для управления видами и меню ---
 
@@ -1027,10 +1042,10 @@ function openMenu() {
 function closeMenu() {
     sideMenu.classList.remove('open');
     document.body.classList.remove('menu-open');
-    closeAllActionDropdowns();
+    closeAllActionDropdowns(); // Закрываем все выпадающие меню действий при закрытии основного меню
 }
 
-// Переключение на другой вид (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+// Переключение на другой вид
 function switchView(newViewId) {
     if (newViewId === activeViewId) {
         closeMenu();
@@ -1052,7 +1067,7 @@ function switchView(newViewId) {
         }
     });
     viewStates[activeViewId] = tableBody.innerHTML;
-    console.log(`Saved state for ${activeViewId}:`, viewStates[activeViewId].substring(0, 100) + '...');
+    console.log(`Saved state for ${activeViewId}:`, viewStates[activeViewId] ? viewStates[activeViewId].substring(0, 100) + '...' : 'EMPTY');
 
     // 2. Обновляем активный ID
     activeViewId = newViewId;
@@ -1061,13 +1076,13 @@ function switchView(newViewId) {
     const newHtml = viewStates[activeViewId];
     console.log(`Loading state for ${activeViewId}:`, newHtml ? newHtml.substring(0, 100) + '...' : 'EMPTY');
 
-    tableBody.innerHTML = newHtml || '';
+    tableBody.innerHTML = newHtml || ''; // Вставляем сохраненный HTML или пустую строку
 
     // 4. Если для нового вида нет сохраненного состояния (он новый или пустой)
     if (!newHtml) {
-        addRow(true);
+        addRow(true); // Добавляем одну пустую строку и фокусируем ее
     } else {
-        // 5. ПОВТОРНО ПРИВЯЗЫВАЕМ ОБРАБОТЧИКИ к загруженным строкам
+        // 5. ПОВТОРНО ПРИВЯЗЫВАЕМ ОБРАБОТЧИКИ к загруженным строкам (теперь без paste)
         reAttachEventListenersToRows();
     }
 
@@ -1084,43 +1099,41 @@ function switchView(newViewId) {
     if (newActiveElement) {
         newActiveElement.classList.add('active-view');
     } else {
-        // Если активный вид не найден в DOM (например, после загрузки из localStorage)
-        // Нам нужно убедиться, что activeViewId корректен и соответствующий элемент меню существует.
-        // Этот случай должен обрабатываться при загрузке из localStorage.
         console.warn(`Active view element for ID ${activeViewId} not found in menu.`);
     }
 
-    // НОВОЕ: Обновляем заголовок над таблицей
+    // Обновляем заголовок над таблицей
     updateCurrentViewNameDisplay();
 
     // 8. Закрываем меню после выбора
     closeMenu();
 
-    // НОВОЕ: Сохраняем состояние приложения после переключения вида
+    // Сохраняем состояние приложения после переключения вида
     saveAppStateToLocalStorage();
 }
 
-// НОВАЯ ФУНКЦИЯ: Обновление текста заголовка над таблицей
+// Обновление текста заголовка над таблицей
 function updateCurrentViewNameDisplay() {
-     const viewName = viewMetadata[activeViewId] || 'Текущий список'; // Берем имя из метаданных
+     const viewName = viewMetadata[activeViewId] || 'Текущий список'; // Берем имя из метаданных или дефолт
     if (currentViewNameElement) {
         currentViewNameElement.textContent = viewName;
     }
 }
 
-// Добавление нового вида в меню
+// Добавление нового вида в меню и инициализация
 function addNewView() {
+    // Генерируем уникальный ID и имя для нового вида
     const newViewId = `view-${nextViewIdCounter++}`;
     const newViewName = `Список ${nextViewIdCounter - 1}`;
 
     // Создаем новый элемент списка в DOM
     const listItem = document.createElement('li');
     listItem.classList.add('view-item');
-    listItem.dataset.viewId = newViewId;
+    listItem.dataset.viewId = newViewId; // Сохраняем ID как data-атрибут
     listItem.innerHTML = `
         <span>${newViewName}</span>
         <div class="view-actions">
-            <button class="ellipsis-btn"><i class="fas fa-ellipsis-v"></i></button>
+            <button class="ellipsis-btn" aria-label="Действия"><i class="fas fa-ellipsis-v"></i></button>
             <div class="actions-dropdown">
                 <a href="#" class="rename-action">Переименовать</a>
                 <a href="#" class="copy-action">Копировать</a>
@@ -1129,19 +1142,20 @@ function addNewView() {
         </div>
     `;
 
-    // Добавляем обработчики для нового элемента
+    // Добавляем обработчики для нового элемента списка
     addEventListenersToViewItem(listItem);
 
+    // Добавляем элемент в конец списка
     viewList.appendChild(listItem);
 
-    // Инициализируем состояние и метаданные для нового вида
+    // Инициализируем пустое состояние и сохраняем метаданные для нового вида
     viewStates[newViewId] = ''; // Пустой tbody
     viewMetadata[newViewId] = newViewName;
 
     // Переключаемся на новый вид (он будет создан с помощью addRow внутри switchView)
     switchView(newViewId);
-    closeAllActionDropdowns();
-    // НОВОЕ: Сохраняем состояние приложения после добавления нового вида
+    closeAllActionDropdowns(); // Закрываем любые открытые меню действий
+    // Сохраняем состояние приложения после добавления нового вида
     saveAppStateToLocalStorage();
 }
 
@@ -1149,22 +1163,22 @@ function addNewView() {
 function renameView(viewItem) {
     const viewId = viewItem.dataset.viewId;
     const span = viewItem.querySelector('span');
-    const currentName = viewMetadata[viewId] || span.textContent; // Берем из метаданных или из DOM
-    const newName = prompt('Введите новое имя для списка:', currentName);
+    const currentName = viewMetadata[viewId] || span.textContent; // Берем имя из метаданных или из DOM
+    const newName = prompt('Введите новое имя для списка:', currentName); // Запрашиваем новое имя у пользователя
 
     if (newName && newName.trim() !== '' && newName !== currentName) {
         const trimmedName = newName.trim();
-        span.textContent = trimmedName; // Обновляем в DOM
-        viewMetadata[viewId] = trimmedName; // Обновляем в метаданных
+        span.textContent = trimmedName; // Обновляем текст в DOM
+        viewMetadata[viewId] = trimmedName; // Обновляем имя в метаданных
         console.log(`View ${viewId} renamed to ${trimmedName}`);
-        // НОВОЕ: Обновляем заголовок, если переименован текущий активный список
+        // Обновляем заголовок над таблицей, если переименован текущий активный список
         if (viewId === activeViewId) {
              updateCurrentViewNameDisplay();
         }
-        // НОВОЕ: Сохраняем состояние приложения после переименования
+        // Сохраняем состояние приложения после переименования
         saveAppStateToLocalStorage();
     }
-    closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown'));
+    closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown')); // Закрываем dropdown
 }
 
 // Копирование вида
@@ -1173,19 +1187,28 @@ function copyView(viewItem) {
     const sourceName = viewMetadata[sourceViewId] || viewItem.querySelector('span').textContent; // Берем имя из метаданных
 
     // Получаем HTML текущего или сохраненного состояния исходного вида
-    let sourceHtml = viewStates[sourceViewId] || ''; // Берем из viewStates
+    // Сначала обновляем атрибуты 'value' в исходном представлении, если оно активно,
+    // чтобы скопировать актуальные данные из полей ввода
+    if (sourceViewId === activeViewId) {
+         tableBody.querySelectorAll('tr input').forEach(input => {
+             input.setAttribute('value', input.value);
+         });
+         viewStates[sourceViewId] = tableBody.innerHTML;
+    }
+    let sourceHtml = viewStates[sourceViewId] || ''; // Берем HTML из viewStates
 
+    // Создаем новый ID и имя для копии
     const newViewId = `view-${nextViewIdCounter++}`;
     const newViewName = `${sourceName} (Копия)`;
 
-    // Создаем новый элемент списка в DOM
+    // Создаем новый элемент списка в DOM для копии
     const listItem = document.createElement('li');
     listItem.classList.add('view-item');
     listItem.dataset.viewId = newViewId;
     listItem.innerHTML = `
         <span>${newViewName}</span>
         <div class="view-actions">
-            <button class="ellipsis-btn"><i class="fas fa-ellipsis-v"></i></button>
+            <button class="ellipsis-btn" aria-label="Действия"><i class="fas fa-ellipsis-v"></i></button>
             <div class="actions-dropdown">
                 <a href="#" class="rename-action">Переименовать</a>
                 <a href="#" class="copy-action">Копировать</a>
@@ -1193,17 +1216,17 @@ function copyView(viewItem) {
             </div>
         </div>
     `;
-    addEventListenersToViewItem(listItem);
-    viewList.appendChild(listItem);
+    addEventListenersToViewItem(listItem); // Привязываем обработчики
+    viewList.appendChild(listItem); // Добавляем в DOM
 
-    // Копируем HTML состояние и метаданные
+    // Копируем HTML состояние и сохраняем метаданные
     viewStates[newViewId] = sourceHtml;
     viewMetadata[newViewId] = newViewName;
     console.log(`View ${sourceViewId} HTML copied to ${newViewId}`);
 
-    switchView(newViewId); // Переключаемся на копию
-    closeAllActionDropdowns();
-    // НОВОЕ: Сохраняем состояние приложения после копирования
+    switchView(newViewId); // Переключаемся на новую копию
+    closeAllActionDropdowns(); // Закрываем dropdown
+    // Сохраняем состояние приложения после копирования
     saveAppStateToLocalStorage();
 }
 
@@ -1214,14 +1237,15 @@ function deleteView(viewItem) {
     // Не удаляем, если остался только один список
     if (Object.keys(viewStates).length <= 1) {
         alert('Нельзя удалить последний список.');
-        closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown'));
+        closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown')); // Закрываем dropdown
         return;
     }
 
     const viewName = viewMetadata[viewIdToDelete] || viewItem.querySelector('span').textContent; // Берем имя из метаданных
 
+    // Запрашиваем подтверждение у пользователя
     if (confirm(`Вы уверены, что хотите удалить список "${viewName}"?`)) {
-        // Удаляем состояние и метаданные
+        // Удаляем состояние и метаданные из хранилищ
         delete viewStates[viewIdToDelete];
         delete viewMetadata[viewIdToDelete];
 
@@ -1229,20 +1253,22 @@ function deleteView(viewItem) {
         viewItem.remove();
         console.log(`View ${viewIdToDelete} deleted`);
 
-        // Если удалили активный вид, переключаемся на первый в списке
+        // Если удалили активный вид, переключаемся на первый оставшийся в списке
         if (activeViewId === viewIdToDelete) {
             const firstViewItem = viewList.querySelector('.view-item');
             if (firstViewItem) {
-                switchView(firstViewItem.dataset.viewId); // switchView вызовет saveAppStateToLocalStorage
+                // switchView сам обновит activeViewId, загрузит состояние и сохранит
+                switchView(firstViewItem.dataset.viewId);
             } else {
-                // Это не должно произойти, т.к. мы проверяем, что остался хотя бы один список
+                // Этот случай маловероятен из-за проверки на количество списков,
+                // но если вдруг остался 0 списков, сбрасываем состояние
                 activeViewId = null;
                 tableBody.innerHTML = '';
                 recalcTotal();
                 if (currentViewNameElement) {
                      currentViewNameElement.textContent = '';
                  }
-                 saveAppStateToLocalStorage(); // Сохраняем пустое состояние, если вдруг нет списков
+                 saveAppStateToLocalStorage(); // Сохраняем пустое состояние
             }
         }
         // Если удалили неактивный вид, просто обновляем отображение имени текущего и сохраняем
@@ -1251,30 +1277,32 @@ function deleteView(viewItem) {
             saveAppStateToLocalStorage();
         }
     }
-     closeAllActionDropdowns();
+     closeAllActionDropdowns(); // Закрываем dropdown
 }
 
-// Добавление обработчиков событий к элементу вида
+
+// Добавление обработчиков событий к элементу вида (в меню)
 function addEventListenersToViewItem(viewItem) {
     // Клик по самому элементу (переключение вида)
     viewItem.addEventListener('click', (e) => {
+        // Проверяем, что клик не был сделан внутри блока .view-actions
         if (!e.target.closest('.view-actions')) {
-            switchView(viewItem.dataset.viewId);
+            switchView(viewItem.dataset.viewId); // Переключаем вид по ID из data-атрибута
         }
     });
 
-    // Клик по кнопке троеточия
+    // Клик по кнопке троеточия (открытие/закрытие выпадающего меню действий)
     const ellipsisBtn = viewItem.querySelector('.ellipsis-btn');
     const dropdown = viewItem.querySelector('.actions-dropdown');
     ellipsisBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeAllActionDropdowns(dropdown);
-        dropdown.classList.toggle('show');
+        e.stopPropagation(); // Останавливаем распространение события, чтобы не сработал клик по viewItem
+        closeAllActionDropdowns(dropdown); // Закрываем все другие dropdown'ы
+        dropdown.classList.toggle('show'); // Переключаем класс 'show' для отображения/скрытия текущего dropdown
     });
 
     // Клики по действиям в выпадающем меню
     viewItem.querySelector('.rename-action').addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation(); renameView(viewItem);
+        e.preventDefault(); e.stopPropagation(); renameView(viewItem); // Предотвращаем переход по ссылке
     });
     viewItem.querySelector('.copy-action').addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation(); copyView(viewItem);
@@ -1284,7 +1312,7 @@ function addEventListenersToViewItem(viewItem) {
     });
 }
 
-// Закрытие всех выпадающих меню действий, кроме одного
+// Закрытие всех выпадающих меню действий (кроме одного, если указано)
 function closeAllActionDropdowns(excludeDropdown = null) {
     viewList.querySelectorAll('.actions-dropdown.show').forEach(dropdown => {
         if (dropdown !== excludeDropdown) {
@@ -1295,16 +1323,18 @@ function closeAllActionDropdowns(excludeDropdown = null) {
 
 // Закрытие меню и dropdown'ов при клике вне их
 document.addEventListener('click', (e) => {
+     // Если клик был вне блока .view-actions, закрываем все dropdown'ы действий
      if (!e.target.closest('.view-actions')) {
         closeAllActionDropdowns();
      }
+     // Если меню открыто и клик был вне меню и кнопки его переключения, закрываем меню
      if (sideMenu.classList.contains('open') && !e.target.closest('.side-menu') && !e.target.closest('.menu-toggle-btn')) {
         closeMenu();
      }
 });
 
 
-// --- Инициализация ---
+// --- Инициализация приложения ---
 
 async function initializeApp() {
     console.log('Initializing application...');
@@ -1313,7 +1343,7 @@ async function initializeApp() {
         sideMenu.classList.contains('open') ? closeMenu() : openMenu();
     });
     closeMenuBtn.addEventListener('click', closeMenu);
-    addViewBtn.addEventListener('click', addNewView);
+    addViewBtn.addEventListener('click', addNewView); // Привязываем добавление нового вида
 
     // 2. Привязываем обработчики кнопок таблицы (Экспорт, Печать, Снимок)
     const exportButton = document.getElementById('export-csv');
@@ -1323,13 +1353,13 @@ async function initializeApp() {
     if (printButton) printButton.addEventListener('click', printTable);
     if (snapshotButton) snapshotButton.addEventListener('click', captureTableSnapshot);
 
-    // 3. Привязываем обработчик FAB
+    // 3. Привязываем обработчик FAB (кнопки "Добавить строку")
     fabButton.addEventListener('click', () => {
-        addRow(false);
+        addRow(false); // Добавляем строку без фокуса на новом поле
         saveAppStateToLocalStorage(); // Сохраняем после добавления строки
     });
 
-    // 4. Инициализация итоговой суммы
+    // 4. Инициализация итоговой суммы в подвале таблицы
     totalSumCell.dataset.total = 0;
     totalSumCell.textContent = formatNumberDisplay(0);
 
@@ -1338,30 +1368,109 @@ async function initializeApp() {
 
     // 6. Обновляем статус сети
     updateNetworkStatus();
-const dateElement = document.querySelector('.print-header-text .print-date');
+
+    // 7. Устанавливаем текущую дату в шапке для печати (если элемент существует)
+    const dateElement = document.querySelector('.print-header-text .print-date');
     if (dateElement) {
         const today = new Date();
-        // Форматируем дату как "3 мая 2025 г." (или другой формат)
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         const formattedDate = today.toLocaleDateString('ru-RU', options);
-        dateElement.textContent = formattedDate; // Вставляем дату
-        console.log('Дата вставлена при инициализации:', formattedDate); // Лог
+        dateElement.textContent = formattedDate;
+        console.log('Дата вставлена при инициализации:', formattedDate);
     }
 
+    // --- НОВОЕ: Делегированный обработчик события PASTE для всей таблицы ---
+    // Привязываем один обработчик paste к tableBody
+    tableBody.addEventListener('paste', async (event) => {
+        const targetInput = event.target;
 
-    // --- НОВОЕ: Загрузка данных из localStorage ---
+        // Проверяем, является ли целью вставки поле Наименование или Количество
+        if (targetInput.classList.contains('name-input') || targetInput.classList.contains('qty-input')) {
+            event.preventDefault(); // Отменяем стандартную вставку
+
+            const pasteData = event.clipboardData.getData('text');
+            const lines = pasteData.split(/\r?\n/).filter(line => line.trim() !== '');
+
+            if (lines.length === 0) {
+                console.log('No valid lines to paste.');
+                return;
+            }
+
+            let currentRow = targetInput.closest('tr'); // Начинаем с строки, куда вставили
+            console.log(`Paste detected on input in row: ${currentRow.rowIndex}. Processing ${lines.length} lines.`);
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i]; // Не тримим здесь для qty, т.к. sanitizeQtyInput сам это делает
+                 const trimmedLine = line.trim(); // Тримим для полей имени
+
+                let currentTargetInput;
+
+                if (i === 0) {
+                    // Для первой строки - используем текущее поле
+                    currentTargetInput = targetInput;
+                } else {
+                    // Для последующих строк - ищем или создаем следующую строку
+                    let nextRow = currentRow.nextElementSibling;
+                    if (!nextRow) {
+                        console.log('Next row not found during paste. Adding a new row.');
+                        // Добавляем новую строку без фокуса, она будет в конце tableBody
+                        // addRow() уже привязывает НЕ-PASTE слушатели к элементам новой строки
+                        addRow(false);
+                        nextRow = tableBody.lastElementChild; // Получаем только что добавленную строку
+                        console.log('New row added during paste:', nextRow);
+                    }
+                    currentRow = nextRow; // Переходим к следующей строке
+                    // Находим целевое поле ввода (Наименование или Количество) в следующей строке
+                    currentTargetInput = currentRow ? currentRow.querySelector(targetInput.classList.contains('name-input') ? '.name-input' : '.qty-input') : null;
+                }
+
+                if (currentTargetInput) {
+                     // Вставляем значение в поле и вызываем соответствующую функцию обновления
+                    if (targetInput.classList.contains('name-input')) {
+                        currentTargetInput.value = trimmedLine; // Для имени используем тримированное значение
+                         console.log(`Pasted Name "${trimmedLine}" into row ${currentRow.rowIndex} name input.`);
+                        onNameChange(currentRow);
+                        console.log(`Called onNameChange for row ${currentRow.rowIndex}.`);
+                    } else if (targetInput.classList.contains('qty-input')) {
+                         // Для количества, очищаем и форматируем значение
+                         const sanitizedValue = sanitizeQtyInput({ value: line }); // Используем sanitize на исходной строке
+                         const numericValue = parseFormattedNumber(sanitizedValue); // Парсим число
+                         // Устанавливаем отформатированное значение в поле
+                         currentTargetInput.value = numericValue > 0 ? formatNumberDisplay(numericValue) : (sanitizedValue === '0.' ? '0.' : ''); // Сохраняем "0." если нужно
+                         console.log(`Pasted Qty "${currentTargetInput.value}" (parsed as ${numericValue}) into row ${currentRow.rowIndex} qty input.`);
+                         onQtyChange(currentRow);
+                         console.log(`Called onQtyChange for row ${currentRow.rowIndex}.`);
+                    }
+
+                } else {
+                    console.warn(`Target input not found for line "${line}" in row ${currentRow ? currentRow.rowIndex : 'N/A'}.`);
+                    console.warn(`Skipping line "${line}" as target input was not found.`);
+                }
+            }
+
+            // После обработки всех строк, пересчитываем итог и сохраняем состояние
+            recalcTotal();
+            console.log('Recalculated total after paste.');
+            saveAppStateToLocalStorage();
+            console.log('App state saved after paste.');
+        }
+    });
+    console.log('Delegated paste listener added to tableBody.');
+    // --- КОНЕЦ НОВОГО ДЕЛЕГИРОВАННОГО ОБРАБОТЧИКА ---
+
+
+    // --- Загрузка данных из localStorage ---
     const dataLoaded = loadAppStateFromLocalStorage();
 
     if (dataLoaded) {
-        // Если данные успешно загружены из localStorage:
-        // Восстанавливаем элементы списка видов в DOM
-        viewList.innerHTML = ''; // Очищаем изначальный элемент списка в index.html
+       // ... (существующий код загрузки из localStorage, восстановления списка видов и innerHTML) ...
+        console.log('Data loaded from localStorage. Restoring views.');
+        viewList.innerHTML = '';
         for (const viewId in viewMetadata) {
             if (viewMetadata.hasOwnProperty(viewId)) {
                  const viewName = viewMetadata[viewId];
                  const listItem = document.createElement('li');
                  listItem.classList.add('view-item');
-                 // Добавляем класс 'active-view', если это текущий активный вид
                  if (viewId === activeViewId) {
                      listItem.classList.add('active-view');
                  }
@@ -1369,7 +1478,7 @@ const dateElement = document.querySelector('.print-header-text .print-date');
                  listItem.innerHTML = `
                     <span>${viewName}</span>
                     <div class="view-actions">
-                        <button class="ellipsis-btn"><i class="fas fa-ellipsis-v"></i></button>
+                        <button class="ellipsis-btn" aria-label="Действия"><i class="fas fa-ellipsis-v"></i></button>
                         <div class="actions-dropdown">
                             <a href="#" class="rename-action">Переименовать</a>
                             <a href="#" class="copy-action">Копировать</a>
@@ -1377,22 +1486,22 @@ const dateElement = document.querySelector('.print-header-text .print-date');
                         </div>
                     </div>
                  `;
-                 addEventListenersToViewItem(listItem); // Привязываем обработчики к новому элементу
+                 addEventListenersToViewItem(listItem);
                  viewList.appendChild(listItem);
             }
         }
 
-        // Переключаемся на последний активный вид, загруженный из localStorage
-         // switchView(activeViewId); // switchView сам вызовет загрузку и перепривязку
-         // Вставляем HTML для активного вида напрямую перед вызовом reAttachEventListenersToRows и recalcTotal
+         // Загружаем HTML контент для активного вида
          tableBody.innerHTML = viewStates[activeViewId] || '';
-         reAttachEventListenersToRows(); // Перепривязываем обработчики к загруженным строкам
-         renumberRows(); // Перенумеровываем
-         recalcTotal(); // Пересчитываем итог
 
-         // Устанавливаем правильный nextViewIdCounter на основе загруженных данных
-         // Это гарантирует, что новые виды будут иметь уникальные ID
-         // Находим максимальный номер среди загруженных viewId и добавляем 1
+         // Перепривязываем только НЕ-PASTE обработчики
+         reAttachEventListenersToRows();
+
+         // Перенумеровываем строки и пересчитываем общую сумму
+         renumberRows();
+         recalcTotal();
+
+         // Устанавливаем правильный nextViewIdCounter
          let maxViewNumber = 0;
          for (const viewId in viewStates) {
              const match = viewId.match(/^view-(\d+)$/);
@@ -1407,24 +1516,27 @@ const dateElement = document.querySelector('.print-header-text .print-date');
 
 
     } else {
-        // Если данные НЕ были загружены (первый запуск или ошибка загрузки):
-        console.log('Starting with default state.');
-        // Инициализируем view-1 с пустым состоянием и метаданными
+        // ... (существующий код инициализации дефолтного состояния, addRow, сохранения) ...
+        console.log('No saved data found. Starting with default state.');
         viewStates['view-1'] = '';
         viewMetadata['view-1'] = 'Список 1';
         activeViewId = 'view-1';
-        nextViewIdCounter = 2; // Следующий вид будет "Список 2"
+        nextViewIdCounter = 2;
 
-        // Добавляем первую строку
-        addRow();
-        // Важно: СОХРАНЯЕМ НАЧАЛЬНОЕ СОСТОЯНИЕ для view-1 ПОСЛЕ addRow()
-        // Атрибуты value уже будут обновлены внутри addRow.
+        addRow(); // Добавляем первую строку
+
+        // Сохраняем начальное состояние для view-1 после addRow()
+        tableBody.querySelectorAll('tr input').forEach(input => {
+            input.setAttribute('value', input.value);
+        });
         viewStates['view-1'] = tableBody.innerHTML;
-        console.log('Initial state for view-1 saved:', viewStates['view-1'].substring(0, 100) + '...');
 
-        // Привязываем обработчики к изначальному элементу списка (view-1) из index.html
+        console.log('Initial state for view-1 saved:', viewStates['view-1'] ? viewStates['view-1'].substring(0, 100) + '...' : 'EMPTY');
+
+        // Привязываем обработчики к изначальному элементу списка (view-1)
         const initialViewItem = viewList.querySelector('.view-item');
         if (initialViewItem) {
+            initialViewItem.classList.add('active-view');
             addEventListenersToViewItem(initialViewItem);
         }
 
@@ -1432,31 +1544,22 @@ const dateElement = document.querySelector('.print-header-text .print-date');
         saveAppStateToLocalStorage();
     }
 
-
-    // Устанавливаем начальное имя списка над таблицей (на основе activeViewId)
+    // Устанавливаем начальное имя списка над таблицей
     updateCurrentViewNameDisplay();
-
 
     console.log('Application initialized.');
 }
 
 // Запускаем инициализацию после загрузки DOM
 document.addEventListener('DOMContentLoaded', initializeApp);
+
 // --- Автосохранение при уходе со страницы ---
 window.addEventListener('beforeunload', () => {
     console.log('Saving app state before unload...');
-    // Перед сохранением, убедимся, что значения из полей ввода попали в атрибуты 'value'
-    // Это важно, т.к. innerHTML сохраняет атрибуты, но не текущие значения полей ввода.
     tableBody.querySelectorAll('tr input').forEach(input => {
         input.setAttribute('value', input.value);
     });
-
-    // Захватываем текущее состояние активного списка из DOM
     viewStates[activeViewId] = tableBody.innerHTML;
-
-    // Сохраняем весь объект состояния в localStorage
-    saveAppStateToLocalStorage(); // Эта функция уже содержит console.log успеха/ошибки
-    // Нет необходимости возвращать что-либо для вывода стандартного сообщения браузера,
-    // так как мы делаем автоматическое сохранение.
+    saveAppStateToLocalStorage();
 });
 // --- Конец блока автосохранения ---
