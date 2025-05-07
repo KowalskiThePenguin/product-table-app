@@ -1213,7 +1213,92 @@ function addEventListenersToViewItem(viewItem) {
         e.preventDefault(); e.stopPropagation(); deleteView(viewItem);
     });
 }
+function addEventListenersToRow(tr) {
+    // ... существующие обработчики событий (input на qty/price, click на delete) ...
 
+    // Получаем поля ввода "Наименование" и "Количество" в этой строке
+    const nameInput = tr.querySelector('.name-input');
+    const qtyInput = tr.querySelector('.qty-input); // Возможно, тут была опечатка в предыдущих версиях, убедитесь что здесь qtyInput
+
+    // ... существующие обработчики input для qtyInput (и priceInput, если есть) ...
+
+    // --- НОВОЕ: Добавляем обработчик события paste к полю ввода "Наименование" ---
+    // Этот обработчик вызовет нашу новую функцию handleNamePaste при вставке
+    if (nameInput) {
+        nameInput.addEventListener('paste', handleNamePaste); // <--- ДОБАВЬТЕ ЭТУ СТРОКУ
+    }
+    // --- Конец НОВОГО ---
+
+    // ... существующий код для сохранения значений в data-* атрибуты при изменении ...
+}
+
+function handleNamePaste(event) {
+    // Предотвращаем стандартную вставку текста в одно поле
+    event.preventDefault();
+
+    // Получаем данные из буфера обмена как обычный текст
+    const clipboardData = event.clipboardData.getData('text/plain');
+
+    // Разделяем данные на строки (предполагаем, что каждая строка в буфере обмена - это отдельное значение)
+    // Используем регулярное выражение для надежного разделения по разным символам переноса строки
+    const pastedValues = clipboardData.split(/\r\n|\n|\r/).map(line => line.trim()); // Разбиваем по переносам строки и чистим пробелы
+
+    // Удаляем пустые строки, которые могли получиться при разбиении
+    const filteredValues = pastedValues.filter(value => value !== '');
+
+    if (filteredValues.length === 0) {
+        console.log('Буфер обмена не содержит данных для вставки.');
+        return; // Если в буфере обмена нет данных, просто выходим
+    }
+
+    console.log('Вставлены данные для распределения:', filteredValues); // Лог вставленных данных
+
+    // Находим текущую строку (<tr>), в которую была произведена вставка (родительский элемент для input)
+    const startRow = event.target.closest('tr');
+    if (!startRow) {
+        console.error('Не удалось найти родительскую строку для элемента вставки.');
+        return;
+    }
+
+    const tableBody = document.getElementById('product-table').querySelector('tbody');
+    const allRows = Array.from(tableBody.querySelectorAll('tr')); // Получаем все строки tbody как массив
+
+    // Находим индекс текущей строки (с которой начинаем вставку) в массиве всех строк
+    const startIndex = allRows.indexOf(startRow);
+
+    // Начинаем вставку данных со строки, в которую была произведена вставка, и далее вниз
+    for (let i = 0; i < filteredValues.length; i++) {
+        const targetRowIndex = startIndex + i;
+
+        // Если целевая строка существует в таблице (ее индекс не выходит за пределы количества строк)
+        if (targetRowIndex < allRows.length) {
+            const targetRow = allRows[targetRowIndex];
+            // Находим поле "Наименование" (.name-input) в целевой строке
+            const targetNameInput = targetRow.querySelector('.name-input');
+
+            // Если поле "Наименование" найдено в целевой строке
+            if (targetNameInput) {
+                const valueToPaste = filteredValues[i];
+                targetNameInput.value = valueToPaste; // <--- Вставляем значение в поле ввода
+
+                // !!! Важно: После программного изменения .value нужно вручную вызвать событие 'input'
+                // для пересчета сумм и обновления data-атрибутов !!!
+                 const inputEvent = new Event('input', { bubbles: true }); // Создаем событие 'input'
+                 targetNameInput.dispatchEvent(inputEvent); // <--- ЗАПУСКАЕМ СОБЫТИЕ
+
+            } else {
+                console.warn(`Не найдено поле "Наименование" в строке с индексом ${targetRowIndex}.`);
+            }
+        } else {
+            // Если данных в буфере обмена больше, чем есть видимых строк в таблице
+            console.log(`Строка с индексом ${targetRowIndex} не существует. Данные "${filteredValues[i]}" не вставлены.`);
+            // Здесь можно было бы добавить логику автоматического добавления строк
+        }
+    }
+    console.log('Вставка данных из буфера обмена и их распределение завершены.'); // Лог завершения
+}
+// --- Конец НОВОЙ ФУНКЦИИ ---
+НОВОЙ ФУНКЦИИ
 // Закрытие всех выпадающих меню действий, кроме одного
 function closeAllActionDropdowns(excludeDropdown = null) {
     viewList.querySelectorAll('.actions-dropdown.show').forEach(dropdown => {
@@ -1283,9 +1368,27 @@ const dateElement = document.querySelector('.print-header-text .print-date');
     const dataLoaded = loadAppStateFromLocalStorage();
 
     if (dataLoaded) {
+		if (viewStates[activeViewId]) {
+            tableBody.innerHTML = viewStates[activeViewId];
+            console.log(`Loaded state for ${activeViewId}:`, tableBody.innerHTML.substring(0, 100) + '...');
+
+            // !!! Важно: Привязываем обработчики событий (включая paste) К КАЖДОЙ загруженной строке
+            tableBody.querySelectorAll('tr').forEach(tr => {
+                addEventListenersToRow(tr); // <--- Убедитесь, что этот вызов есть
+            });
+
+            // Обновляем атрибуты value для полей ввода после загрузки innerHTML
+            tableBody.querySelectorAll('tr input').forEach(input => {
+                 input.value = input.getAttribute('value') || '';
+                 // Инициируем событие input для пересчета сумм после загрузки
+                 const inputEvent = new Event('input', { bubbles: true });
+                 input.dispatchEvent(inputEvent); // <--- Добавьте это, чтобы суммы пересчитывались при загрузке
+             });
+        }
         // Если данные успешно загружены из localStorage:
         // Восстанавливаем элементы списка видов в DOM
-        viewList.innerHTML = ''; // Очищаем изначальный элемент списка в index.html
+        viewList.innerHTML = '';
+		// Очищаем изначальный элемент списка в index.html
         for (const viewId in viewMetadata) {
             if (viewMetadata.hasOwnProperty(viewId)) {
                  const viewName = viewMetadata[viewId];
@@ -1334,9 +1437,8 @@ const dateElement = document.querySelector('.print-header-text .print-date');
              }
          }
          nextViewIdCounter = maxViewNumber + 1;
-
-
-    } else {
+    } 
+	else {
         // Если данные НЕ были загружены (первый запуск или ошибка загрузки):
         console.log('Starting with default state.');
         // Инициализируем view-1 с пустым состоянием и метаданными
