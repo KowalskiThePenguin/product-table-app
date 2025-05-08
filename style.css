@@ -420,15 +420,7 @@ button#snapshot-table:active {
     /* Устраняем зазор последнего столбца при печати */
     tbody td:last-child,
     thead th:last-child {
-        display: table-cell !important;
-        width: 0 !important;
-        min-width: 0 !important;
-        max-width: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        overflow: hidden !important;
-        font-size: 0 !important;
-        line-height: 0 !important;
+        display: none !important;
     }
 
      tfoot td:last-child {
@@ -440,7 +432,24 @@ button#snapshot-table:active {
     table, th, td {
         border: 1px solid #000 !important;
         padding: 0.5em !important; /* Возвращаем стандартный padding для остальных ячеек */
+	    border-collapse: collapse !important;
     }
+     thead {
+         display: table-row-group !important; /* Меняем с table-header-group */
+         /* Это должно заставить его отобразиться только один раз в начале таблицы */
+         /* Дополнительные свойства для контроля разрыва страниц после шапки */
+         page-break-after: avoid !important;
+         break-after: avoid !important; /* Современное свойство */
+     }
+
+     /* Пытаемся предотвратить повторение подвала и разместить его в конце */
+     tfoot {
+         display: table-row-group !important; /* Меняем с table-footer-group */
+         /* Это должно поместить подвал после всех строк tbody в потоке */
+         /* Дополнительные свойства для контроля разрыва страниц перед подвалом */
+         page-break-before: avoid !important;
+         break-before: avoid !important; /* Современное свойство */
+     }
 
     thead th {
         background-color: #f2f2f2 !important;
@@ -450,9 +459,10 @@ button#snapshot-table:active {
          background-color: #f9f9f9 !important;
     }
 
-    tbody tr {
-        page-break-inside: avoid;
-    }
+    tbody tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important; /* Современное свойство */
+    }
 
      tfoot td {
         background-color: #F7F21A !important;
@@ -563,7 +573,83 @@ tbody input[type="text"], /* Поле "Наименование" */
 
 
 }
+/* style.css */
 
+/* ... (весь ваш существующий CSS код до этого места) ... */
+
+
+/* --- Адаптивные настройки для кнопок на маленьких экранах --- */
+@media (max-width: 768px) {
+    /* Увеличиваем область нажатия для кнопок на телефонах */
+
+    /* Кнопки действий (Экспорт, Печать, Снимок) */
+    .action-buttons button {
+        padding: 12px 15px; /* Увеличенный padding для удобства нажатия */
+        font-size: 1em; /* Гарантируем читаемый размер шрифта */
+        min-width: 120px; /* Минимальная ширина кнопки */
+        /* height: auto; */ /* Высота будет определяться контентом и padding'ом */
+        margin: 5px; /* Добавляем небольшой внешний отступ между кнопками */
+    }
+     /* Контейнер для кнопок действий может стать вертикальным на маленьких экранах */
+     .action-buttons {
+         display: flex; /* Используем flexbox */
+         flex-direction: column; /* Выстраиваем кнопки вертикально */
+         align-items: stretch; /* Растягиваем кнопки по ширине контейнера */
+     }
+
+
+    /* Кнопки троеточия в списке видов */
+    .view-item .ellipsis-btn {
+        padding: 10px; /* Увеличенный padding */
+        font-size: 1.4em; /* Увеличиваем размер иконки */
+        /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+        /* min-height: 44px; */
+    }
+
+    /* Кнопки удаления строки */
+    .delete-btn {
+        padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+        font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+        /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+        /* min-height: 44px; */
+    }
+
+    /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+    .menu-toggle-btn {
+        font-size: 1.8em; /* Чуть больше иконка */
+        padding: 8px 12px; /* Увеличенный padding */
+    }
+
+    /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+    .close-menu-btn {
+         padding: 10px; /* Добавляем padding для удобства */
+    }
+
+    /* Кнопка "Добавить список" */
+     .add-view-button {
+         font-size: 1.1em; /* Немного увеличиваем шрифт */
+         padding: 12px; /* Увеличиваем padding */
+     }
+
+
+    /* FAB кнопка "Добавить строку" (уже достаточно большая, вряд ли требует изменений,
+       но убедимся, что ее размер не уменьшается) */
+    /* .fab {
+        width: 60px;
+        height: 60px;
+        font-size: 2em;
+    } */
+
+    /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+     .suggestions-dropdown {
+         min-width: 180px; /* Увеличиваем минимальную ширину */
+         /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+     }
+
+
+}
+
+/* ... (ваш существующий блок @media print и остальной CSS) ... */
 /* ... (остальные стили после блока @media print без изменений) ... */
 body {
     margin: 0;
