@@ -1,13 +1,13 @@
-{ // Линия 1
-  "name": "Aqua Luxe", // Линия 2
-  "short_name": "Списки", // Линия 3
-  "description": "Приложение для ведения таблиц товаров с оффлайн-сохранением.", // Линия 4
-  "start_url": "/product-table-app/", // Линия 5
-  "display": "standalone", // Линия 6
-  "background_color": "#ffffff", // Линия 7
-  "theme_color": "#198754", // Линия 8
-  "icons": [ // Линия 9 <--- Здесь ошибка, столбец 1
-    { // Линия 10
+{
+  "name": "Aqua Luxe",
+  "short_name": "Списки",
+  "description": "Приложение для ведения таблиц товаров с оффлайн-сохранением.",
+  "start_url": "/product-table-app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#198754",
+  "icons": [
+    {
       "src": "icons/icon-192x192.png", // Линия 11
       "sizes": "192x192", // Линия 12
       "type": "image/png" // Линия 13
