@@ -127,12 +127,12 @@ body .fab {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: #007bff;
   color: #fff;
-  font-size: 2.5em;
+  font-size: 3em;
   /* line-height: 60px; /* <-- Убрано (уже убрано в предыдущей версии, но убеждаемся) */
   /* text-align: center; /* <-- Убрано (уже убрано в предыдущей версии, не нужно при display: flex) */
   cursor: pointer;
@@ -616,8 +616,8 @@ tbody input[type="text"], /* Поле "Наименование" */
 
     /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
     .menu-toggle-btn {
-        font-size: 1.8em; /* Чуть больше иконка */
-        padding: 8px 12px; /* Увеличенный padding */
+        font-size: 2em; /* Увеличиваем размер иконки */
+        padding: 15px; /* Увеличиваем padding для большей области нажатия */
     }
 
     /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
