@@ -628,7 +628,7 @@ button#snapshot-table:active {
   }
 button#export-csv {
     padding: 0.8em 1.5em;
-    font-size: 0.5em;
+    font-size: 0.8em;
     color: #fff;
     background-color: #28a745; /* Зеленый цвет */
     border: none;
@@ -638,7 +638,7 @@ button#export-csv {
 }
 button#print-table {
     padding: 0.8em 1.5em;
-    font-size: 0.5em;
+    font-size: 0.8em;
     color: #fff;
     background-color: #007bff; /* Синий цвет */
     border: none;
@@ -649,7 +649,7 @@ button#print-table {
 }
 button#snapshot-table {
     padding: 0.8em 1.5em;
-    font-size: 0.5em;
+    font-size: 0.8em;
     color: #fff;
     background-color: #6c757d; /* Серый цвет */
     border: none;
