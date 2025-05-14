@@ -252,6 +252,7 @@ button#export-csv:active {
     background-color: #1e7e34; /* Еще темнее при нажатии */
 }
 
+
 /* Стили для кнопки печати */
 button#print-table {
     padding: 0.8em 1.5em;
@@ -617,7 +618,7 @@ button#snapshot-table:active {
 }
 
 /* --- Адаптивные настройки для кнопок на маленьких экранах --- */
-@media (max-width: 1200px) {
+@media (max-width: 578px) {
   /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
   #app-header .header-content {
     display: flex; /* Убедимся, что это flex-контейнер */
@@ -625,7 +626,38 @@ button#snapshot-table:active {
     align-items: center; /* Выравнивание по центру по вертикали */
     width: 100%; 
   }
-
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.5em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.5em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.5em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
   .action-buttons {
     align-items: center;
     flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
@@ -686,22 +718,13 @@ button#snapshot-table:active {
     padding: 12px; /* Увеличиваем padding */
   }
 
-  /* FAB кнопка "Добавить строку" (уже достаточно большая, вряд ли требует изменений,
-       но убедимся, что ее размер не уменьшается) */
-  /* .fab {
-        width: 60px;
-        height: 60px;
-        font-size: 2em;
-    } */
-
   /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
   .suggestions-dropdown {
     min-width: 180px; /* Увеличиваем минимальную ширину */
     /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
   }
 }
-/* ... (ваш существующий блок @media print и остальной CSS) ... */
-/* ... (остальные стили после блока @media print без изменений) ... */
+
 body {
     margin: 0;
     padding: 20px;
@@ -715,24 +738,6 @@ body {
     overflow-x: auto;
     transition: margin-left 0.3s ease !important; /* Совпадает с переходом меню */
     padding-bottom: 130px; /* Убедитесь, что это значение присутствует и достаточно */
-}
-button#export-csv {
-    padding: 0.8em 1.5em;
-    font-size: 1em;
-    color: #fff;
-    background-color: #28a745; /* Зеленый цвет */
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-}
-
-button#export-csv:hover {
-    background-color: #218838; /* Темнее при наведении */
-}
-
-button#export-csv:active {
-    background-color: #1e7e34; /* Еще темнее при нажатии */
 }
 
 /* --- СТИЛИ ДЛЯ ПОЛЬЗОВАТЕЛЬСКОГО СПИСКА ПРЕДЛОЖЕНИЙ --- */
