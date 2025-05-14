@@ -102,48 +102,80 @@ body.sidebar-open #network-status {
      right: auto;
 }
 
-/* ... (остальные стили) ... */
+#app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #343a40; /* Цвет фона как у старых .action-buttons или другой */
+    padding: 10px;             /* Отступы как у старых .action-buttons или другие */
+    z-index: 1010;             /* Убедитесь, что это значение согласуется с z-index других элементов (например, .menu-toggle-btn имеет 1100, side-menu 1050) */
+    display: flex;
+    justify-content: flex-end; /* Размещает .action-buttons справа */
+    align-items: center;       /* Выравнивает элементы по центру по вертикали */
+    box-sizing: border-box;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Небольшая тень для выделения хедера */
 
+}
+#app-header .header-left {
+    /* flex-basis: auto; /* Базовый размер по содержимому */
+    flex-grow: 0;     /* Не разрешаем ему расти */
+    flex-shrink: 0;   /* Не разрешаем ему сжиматься */
+    align-items: center; /* Сохраняем вертикальное выравнивание */
+	
+}
+
+#app-header .header-right {
+    flex-grow: 1;
+    flex-shrink: 1;
+    align-items: center;
+    /* Add padding-left to create space for the fixed menu toggle button */
+    /* Adjust the value (e.g., 60px) based on the size and position of your menu toggle button */
+    padding-left: 80px;
+    /* ... other existing styles for .header-right ... */
+}
+#app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #343a40; /* Цвет фона как у body или другой */
+    padding: 10px;
+    z-index: 1010;
+    display: flex;
+    justify-content: center; /* Размещает .fab справа */
+    align-items: center;       /* Выравнивает .fab по центру по вертикали */
+    box-sizing: border-box;
+    border-top: 1px solid #dee2e6; /* Тонкая линия сверху для отделения футера */
+}
 /* Стили кнопки удаления */
-.delete-btn {
-    cursor: pointer;
-    color: #ccc;
-    font-weight: bold;
-    padding: 0 0.3em;
-    display: inline-block;
-    transition: color 0.2s ease-in-out;
-    vertical-align: middle;
-}
 
-/* Эффект при наведении на кнопку удаления */
-.delete-btn:hover {
-    color: #dc3545;
-}
 
 /* Стили Floating Action Button (FAB) */
 /* --- Floating Action Button (FAB) Styles --- */
 /* Изменяем селектор с .fab на body .fab для увеличения специфичности */
+#app-footer .fab { /* Или просто .fab, если нет конфликтов. Этот селектор более специфичен */
+    position: static;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #007bff;
+    color: #fff;
+    font-size: 3em;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    transition: all 0.3s ease-in-out, left 0.3s ease; /* Включаем left в плавный переход */
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center;   /* Центрирование по вертикали */
+}
 body .fab {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #007bff;
-  color: #fff;
-  font-size: 3em;
-  /* line-height: 60px; /* <-- Убрано (уже убрано в предыдущей версии, но убеждаемся) */
-  /* text-align: center; /* <-- Убрано (уже убрано в предыдущей версии, не нужно при display: flex) */
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-  transition: all 0.3s ease-in-out, left 0.3s ease; /* Включаем left в плавный переход */
-  z-index: 1000;
-  left: auto; /* Ensure it's not affected by left by default */
-  /* Добавляем Flexbox для идеального центрирования символа '+' */
-  display: flex;
-  justify-content: center; /* Центрирование по горизонтали */
-  align-items: center;   /* Центрирование по вертикали */
+    position: static; /* Гарантированно убираем fixed */
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    z-index: auto;
 }
 
 /* Эффект при наведении */
@@ -169,7 +201,20 @@ body.sidebar-open .fab {
    /* transform: none; /* Можно убрать transform: scale при открытии меню, если нужно */
 }
 	
+.delete-btn {
+    cursor: pointer;
+    color: #ccc;
+    font-weight: bold;
+    padding: 0 0.3em;
+    display: inline-block;
+    transition: color 0.2s ease-in-out;
+    vertical-align: middle;
+}
 
+/* Эффект при наведении на кнопку удаления */
+.delete-btn:hover {
+    color: #dc3545;
+}
 /* Эффект при наведении на FAB */
 .fab:hover {
     background-color: #0056b3;
@@ -193,7 +238,7 @@ button#export-csv {
     color: #fff;
     background-color: #28a745; /* Зеленый цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em; /* Отступ снизу */
     transition: background-color 0.2s ease-in-out;
@@ -214,7 +259,7 @@ button#print-table {
     color: #fff;
     background-color: #007bff; /* Синий цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em;
     margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
@@ -240,7 +285,7 @@ button#export-csv {
     color: #fff;
     background-color: #28a745; /* Зеленый цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em; /* Отступ снизу */
     transition: background-color 0.2s ease-in-out;
@@ -261,7 +306,7 @@ button#print-table {
     color: #fff;
     background-color: #007bff; /* Синий цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em;
     margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
@@ -283,7 +328,7 @@ button#snapshot-table {
     color: #fff;
     background-color: #6c757d; /* Серый цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em;
     margin-left: 0.5em; /* Отступ слева */
@@ -305,7 +350,6 @@ button#snapshot-table:active {
     width: 100%;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    padding: 0 10px;
 }
 
 .print-header-text .print-date {
@@ -347,16 +391,19 @@ button#snapshot-table:active {
     button#snapshot-table {
         display: none !important;
     }
+    #network-status {
+        display: none !important;
+    }
 }
+
     .print-header-text {
         display: flex !important; /* Убедимся, что flexbox активен */
         /* justify-content: space-between; */ /* <--- Возможно, убрать или изменить */
         justify-content: center; /* Центрируем содержимое */
         align-items: center;
         width: 100%;
-        margin-top: 0.5em !important;
+        margin-top: 1em !important;
         margin-bottom: 1em !important;
-        padding: 0 10px !important;
     }
 
     .print-header-text .print-date {
@@ -401,7 +448,13 @@ button#snapshot-table:active {
         -webkit-print-color-adjust: exact;
         color-adjust: exact;
     }
-
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        /* Ensure no default min-height or other properties are adding space */
+        min-height: 0 !important;
+        height: auto !important;
+    }
     .container {
         margin: 0 !important;
         padding: 0 !important;
@@ -413,8 +466,8 @@ button#snapshot-table:active {
     button#export-csv,
     button#print-table,
     .suggestions-dropdown
-     {
-        display: none !important;
+    {
+       display: none !important;
     }
 
     /* Устраняем зазор последнего столбца при печати */
@@ -423,33 +476,31 @@ button#snapshot-table:active {
         display: none !important;
     }
 
-     tfoot td:last-child {
-        display: none !important;
-     }
-
-
+    tfoot td:last-child {
+       display: none !important;
+    }
     /* Убеждаемся, что таблица и ячейки печатаются с рамками */
     table, th, td {
         border: 1px solid #000 !important;
         padding: 0.5em !important; /* Возвращаем стандартный padding для остальных ячеек */
 	    border-collapse: collapse !important;
     }
-     thead {
-         display: table-row-group !important; /* Меняем с table-header-group */
-         /* Это должно заставить его отобразиться только один раз в начале таблицы */
-         /* Дополнительные свойства для контроля разрыва страниц после шапки */
-         page-break-after: avoid !important;
-         break-after: avoid !important; /* Современное свойство */
-     }
+    thead {
+        display: table-row-group !important; /* Меняем с table-header-group */
+        /* Это должно заставить его отобразиться только один раз в начале таблицы */
+        /* Дополнительные свойства для контроля разрыва страниц после шапки */
+        page-break-after: avoid !important;
+        break-after: avoid !important; /* Современное свойство */
+    }
 
      /* Пытаемся предотвратить повторение подвала и разместить его в конце */
-     tfoot {
-         display: table-row-group !important; /* Меняем с table-footer-group */
-         /* Это должно поместить подвал после всех строк tbody в потоке */
-         /* Дополнительные свойства для контроля разрыва страниц перед подвалом */
-         page-break-before: avoid !important;
-         break-before: avoid !important; /* Современное свойство */
-     }
+    tfoot {
+        display: table-row-group !important; /* Меняем с table-footer-group */
+        /* Это должно поместить подвал после всех строк tbody в потоке */
+        /* Дополнительные свойства для контроля разрыва страниц перед подвалом */
+        page-break-before: avoid !important;
+        break-before: avoid !important; /* Современное свойство */
+    }
 
     thead th {
         background-color: #f2f2f2 !important;
@@ -464,13 +515,13 @@ button#snapshot-table:active {
         break-inside: avoid !important; /* Современное свойство */
     }
 
-     tfoot td {
+    tfoot td {
         background-color: #F7F21A !important;
-     }
+    }
 /* Правило для выравнивания второй ячейки подвала по левому краю */
     tfoot td:nth-child(2) {
         text-align: left;
-   }
+    }
     /* Убеждаемся, что значения из полей ввода видны при печати */
     input[type="text"] {
         border: none !important;
@@ -479,14 +530,14 @@ button#snapshot-table:active {
         margin: 0 !important;
         box-shadow: none !important;
         color: #000 !important;
-         -webkit-print-color-adjust: exact;
-         color-adjust: exact;
-         /* Убираем общие правила ширины, чтобы специфичные классы могли применить свою ширину */
-         width: auto !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        /* Убираем общие правила ширины, чтобы специфичные классы могли применить свою ширину */
+        width: auto !important;
     }
-tbody input[type="text"], /* Поле "Наименование" */
+    tbody input[type="text"], /* Поле "Наименование" */
     tbody input[type="number"] /* Поле "Количество" (если у него type="number", иначе тоже type="text") */
-     {
+    {
         font-family: inherit !important; /* Наследуем шрифт от родительской ячейки */
         font-size: inherit !important; /* Наследуем размер шрифта */
         font-weight: normal !important; /* Или bold, если остальной текст жирный */
@@ -504,51 +555,48 @@ tbody input[type="text"], /* Поле "Наименование" */
     /* Дополнительно, если у ячеек с полями ввода есть специфичные стили, которые нужно сохранить */
     /* Например, если у ячеек есть padding, который нужно, чтобы текст внутри поля ввода тоже учитывал */
     /* Это обычно решается padding'ом на самой td */
-     tbody td {
+    tbody td {
         /* Убедитесь, что у ячеек есть нужный padding */
         padding: 0.5em !important; /* Пример padding'а из общих правил */
-     }
+    }
 
     /* !!! Устанавливаем минимальную ширину для ЯЧЕЙКИ наименования и разрешаем перенос текста !!! */
-    tbody td:nth-child(2), /* 2-я ячейка в строке тела таблицы (Наименование) */
-    thead th:nth-child(2) /* 2-й заголовок в шапке таблицы (Наименование) */
-     {
+    thead th:nth-child(2) {
+        text-align: center !important;
+    }
+    tbody td:nth-child(2) /* 2-я ячейка в строке тела таблицы (Наименование) */
+    {
         min-width: 5cm !important; /* Устанавливаем минимальную ширину, можно настроить */
         width: auto !important; /* Позволяем ячейке расширяться, если текст длиннее мин. ширины */
         box-sizing: border-box;
         /* Убеждаемся, что текст в ячейке может переноситься */
         white-space: normal !important;
         word-wrap: break-word !important; /* Дополнительно разрешаем перенос внутри слов */
-		text-align: inherit !important; // <--- Эта строка уже есть, она наследует 'left' от родителя
-
-     }
-
+        text-align: left !important; /* <-- чётко задаём выравнивание слева */
+    }
     /* !!! Убеждаемся, что поле ввода "Наименование" занимает всю ширину своей родительской ячейки !!! */
-     td input.name-input {
-         width: 100% !important; /* Занимаем 100% ширины родительской td */
-         box-sizing: border-box;
-         /* Перенос текста теперь лучше контролировать на уровне ячейки, но эти правила тоже не помешают */
-         white-space: normal !important;
-         word-wrap: break-word !important;
-         height: auto !important; /* Позволяем полю растягиваться по высоте, если текст переносится */
-         overflow: visible !important; /* Убеждаемся, что текст не скрывается */
-
-         /* Остальные стили (border, background, padding, margin, color, box-shadow, color-adjust) уже заданы для input[type="text"] */
-         border: none !important;
-         background: transparent !important;
-         padding: 0 !important;
-         margin: 0 !important;
-         box-shadow: none !important;
-         color: #333 !important;
-          -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-      }
-
-
+    td input.name-input {
+        width: 100% !important; /* Занимаем 100% ширины родительской td */
+        box-sizing: border-box;
+        /* Перенос текста теперь лучше контролировать на уровне ячейки, но эти правила тоже не помешают */
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        height: auto !important; /* Позволяем полю растягиваться по высоте, если текст переносится */
+        overflow: visible !important; /* Убеждаемся, что текст не скрывается */
+        /* Остальные стили (border, background, padding, margin, color, box-shadow, color-adjust) уже заданы для input[type="text"] */
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        color: #333 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
     /* Фиксированная ширина для ЯЧЕЙКИ количества (из предыдущего шага - сохраняем) */
     tbody td:nth-child(5),
     thead th:nth-child(5)
-     {
+    {
         width: 2cm !important;
         min-width: 2cm !important;
         max-width: 2cm !important;
@@ -558,25 +606,19 @@ tbody input[type="text"], /* Поле "Наименование" */
     }
 
     /* Поле ввода количества заполняет свою ячейку (из предыдущего шага - сохраняем) */
-     td input.qty-input {
-         width: 100% !important;
-         box-sizing: border-box;
-         border: none !important;
-         background: transparent !important;
-         padding: 0 !important;
-         margin: 0 !important;
-         box-shadow: none !important;
-         color: #333 !important;
-          -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-      }
-
-
+    td input.qty-input {
+        width: 100% !important;
+        box-sizing: border-box;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        color: #333 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
 }
-/* style.css */
-
-/* ... (весь ваш существующий CSS код до этого места) ... */
-
 
 /* --- Адаптивные настройки для кнопок на маленьких экранах --- */
 @media (max-width: 1200px) {
@@ -584,18 +626,20 @@ tbody input[type="text"], /* Поле "Наименование" */
 
     /* Кнопки действий (Экспорт, Печать, Снимок) */
     .action-buttons button {
-        padding: 12px 15px; /* Увеличенный padding для удобства нажатия */
-        font-size: 1em; /* Гарантируем читаемый размер шрифта */
-        min-width: 120px; /* Минимальная ширина кнопки */
-        /* height: auto; */ /* Высота будет определяться контентом и padding'ом */
-        margin: 5px; /* Добавляем небольшой внешний отступ между кнопками */
+        padding: 12px 15px;
+        font-size: 1em;
+        /* Убираем или комментируем min-width, чтобы кнопки могли сжиматься */
+        /* min-width: 120px; */
+        /* Вместо фиксированного margin используйте gap для flexbox */
+        margin: 0; /* Сбрасываем существующий margin */
     }
-     /* Контейнер для кнопок действий может стать вертикальным на маленьких экранах */
-     .action-buttons {
-         display: flex; /* Используем flexbox */
-         flex-direction: column; /* Выстраиваем кнопки вертикально */
-         align-items: stretch; /* Растягиваем кнопки по ширине контейнера */
-     }
+
+    .action-buttons {
+        display: flex;
+        align-items: center; /* Выравниваем по центру по вертикали, а не растягиваем */
+        flex-wrap: nowrap; /* Предотвращаем перенос кнопок на новую строку */
+        gap: 5px; /* Добавляем промежуток между flex-элементами (кнопками) */
+    }
 
 
     /* Кнопки троеточия в списке видов */
@@ -626,10 +670,10 @@ tbody input[type="text"], /* Поле "Наименование" */
     }
 
     /* Кнопка "Добавить список" */
-     .add-view-button {
+    .add-view-button {
          font-size: 1.1em; /* Немного увеличиваем шрифт */
          padding: 12px; /* Увеличиваем padding */
-     }
+    }
 
 
     /* FAB кнопка "Добавить строку" (уже достаточно большая, вряд ли требует изменений,
@@ -641,10 +685,10 @@ tbody input[type="text"], /* Поле "Наименование" */
     } */
 
     /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
-     .suggestions-dropdown {
+    .suggestions-dropdown {
          min-width: 180px; /* Увеличиваем минимальную ширину */
          /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
-     }
+    }
 
 
 }
@@ -670,7 +714,7 @@ button#export-csv {
     color: #fff;
     background-color: #28a745; /* Зеленый цвет */
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     margin-bottom: 1em; /* Отступ снизу */
     transition: background-color 0.2s ease-in-out;
@@ -753,6 +797,7 @@ body {
     background-color: #f8f9fa;
     position: relative; /* Для позиционирования меню */
     overflow-x: hidden; /* Предотвращаем горизонтальный скролл при открытом меню */
+    padding-top: 60px; /* Отрегулируйте это значение */
 }
 
 /* Стили для основного контейнера */
@@ -762,29 +807,23 @@ body {
     margin: 0 auto;
     padding: 20px; /* Возвращаем padding для контента */
     overflow-x: auto;
+    padding-bottom: 100px; /* Отрегулируйте это значение при необходимости */
 }
 
 /* Кнопки действий внутри контейнера */
 .action-buttons {
-    margin-bottom: 1em; /* Этот отступ может остаться для обычного потока, но он не влияет на fixed */
-    text-align: left; /* Выравнивание кнопок внутри контейнера */
+    position: static; /* Убираем fixed, т.к. родитель #app-header теперь fixed */
+    top: auto;        /* Сбрасываем */
+    right: auto;      /* Сбрасываем */
+    z-index: auto;    /* Сбрасываем */
+    background-color: transparent; /* Фон теперь у #app-header */
+    padding: 0;                 /* Отступы теперь у #app-header или по необходимости */
+    box-shadow: none;           /* Тень теперь у #app-header или по необходимости */
+    margin-bottom: 0;           /* Сбрасываем, если не нужен дополнительный отступ */
 
-    /* --- Добавляем фиксированное позиционирование --- */
-    position: fixed; /* Закрепляем элемент относительно окна браузера */
-    top: 10px; /* Отступ сверху (можно настроить) */
-    right: 10px; /* Отступ справа (можно настроить) */
-    z-index: 10; /* Убедимся, что кнопки находятся поверх другого контента (но ниже меню, у которого z-index выше) */
-
-    /* Добавляем фон и отступы, чтобы контент под кнопками не просвечивал */
-    background-color: #fff; /* Белый фон */
-    padding: 10px; /* Внутренние отступы вокруг кнопок */
-    border-radius: 5px; /* Скругленные углы (опционально) */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Легкая тень (опционально) */
-
-    /* Чтобы кнопки не переносились на новую строку, если их много */
-    white-space: nowrap;
-
-    /* --- Конец фиксированного позиционирования --- */
+    /* white-space: nowrap; /* Можно оставить, если кнопки должны быть в одну строку */
+    /* text-align: left; /* Flex-контейнер #app-header управляет выравниванием */
+    /* border-radius: 5px; /* Можно оставить, если группа кнопок должна иметь скругленные углы внутри хедера */
 }
 
 /* --- Добавляем отступ к body, чтобы контент не перекрывался кнопками --- */
@@ -801,7 +840,7 @@ body {
 /* Кнопка-гамбургер */
 .menu-toggle-btn {
     position: fixed;
-    top: 20px;
+    top: 15px;
     left: 15px;
     z-index: 1100;
     background: #007bff;
@@ -810,7 +849,7 @@ body {
     padding: 9px 15px;
     font-size: 1.2em;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 10px;
     transition: opacity 0.3s ease; /* Добавляем плавное исчезновение */
 }
 
@@ -841,7 +880,7 @@ body {
     transition: left 0.3s ease; /* Плавное появление */
     display: flex;
     flex-direction: column;
-    padding-top: 60px; /* Отступ сверху для кнопки закрытия и заголовка */
+    padding-top: 80px; /* Отступ сверху для кнопки закрытия и заголовка */
     box-sizing: border-box;
 }
 
@@ -1092,7 +1131,7 @@ body.menu-open .close-menu-btn {
     background-color: #198754; /* Зеленый */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     text-align: center;
     font-size: 1em;
@@ -1142,9 +1181,11 @@ body.menu-open .close-menu-btn {
         padding: 0 !important; /* Убираем паддинги для печати */
     }
 
-    .action-buttons {
-        display: none !important; /* Скрываем кнопки экспорта/печати/снимка */
+    #app-header,
+    #app-footer {
+        display: none !important;
     }
+
 /* Скрываем изображение по умолчанию */
     .print-header-image {
         display: block !important; /* Убедимся, что он block при печати */
@@ -1157,10 +1198,34 @@ body.menu-open .close-menu-btn {
 
     /* Стилизация самого изображения при печати */
     .print-header-image img {
-         max-width: 15cm !important; /* Размер изображения при печати */
+         max-width: auto !important; /* Размер изображения при печати */
          height: auto !important;
          /* Убедитесь, что нет переопределений, мешающих центрированию */
          /* float: none !important; */
          /* text-align: initial !important; */
+    }	
+}
+@media (max-width: 768px) {
+    table {
+        font-size: 0.9em;
     }
-    	
+
+    td input.name-input {
+        min-width: 250px;
+    }
+
+    td input.qty-input {
+        width: 6ch;
+    }
+
+    .fab {
+        width: 55px;
+        height: 55px;
+        font-size: 2em;
+    }
+
+    #network-status {
+        bottom: 70px;
+        font-size: 0.8em;
+    }
+}
