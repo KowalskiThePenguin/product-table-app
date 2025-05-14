@@ -1,84 +1,91 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Списки">
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-  <link rel="manifest" href="manifest.json">
-  <title>AQUA LUXE</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-</head>
-<body>
+	<!DOCTYPE html>
+	<html lang="ru">
+	<head>
+	  <meta charset="UTF-8" />
+	  <meta name="mobile-web-app-capable" content="yes">
+	  <meta name="apple-mobile-app-status-bar-style" content="black-translucent">
+	  <meta name="apple-mobile-web-app-title" content="Списки">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+	  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+	  <link rel="manifest" href="manifest.json">
+	  <title>AQUA LUXE</title>
+	  <link rel="stylesheet" href="style.css">
+	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+	</head>
+	<body>
 
-<button id="menu-toggle" class="menu-toggle-btn">
-  <i class="fas fa-bars"></i>
-</button>
+	<div id="side-menu" class="side-menu">
+	  <div class="menu-header">
+		<h2>Списки</h2>
+		<button id="close-menu" class="close-menu-btn">&times;</button>
+	  </div>
+	  <ul id="view-list" class="view-list">
+		<li class="view-item active-view" data-view-id="view-1">
+		  <span>Список 1</span>
+		  <div class="view-actions">
+			<button class="ellipsis-btn"><i class="fas fa-ellipsis-v"></i></button>
+			<div class="actions-dropdown">
+			  <a href="#" class="rename-action">Переименовать</a>
+			  <a href="#" class="copy-action">Копировать</a>
+			  <a href="#" class="delete-action">Удалить</a>
+			</div>
+		  </div>
+		</li>
+		</ul>
+	  <button id="add-view-btn" class="add-view-button">Добавить список</button>
+	</div>
 
-<div id="side-menu" class="side-menu">
-  <div class="menu-header">
-    <h2>Списки</h2>
-    <button id="close-menu" class="close-menu-btn">&times;</button>
-  </div>
-  <ul id="view-list" class="view-list">
-    <li class="view-item active-view" data-view-id="view-1">
-      <span>Список 1</span>
-      <div class="view-actions">
-        <button class="ellipsis-btn"><i class="fas fa-ellipsis-v"></i></button>
-        <div class="actions-dropdown">
-          <a href="#" class="rename-action">Переименовать</a>
-          <a href="#" class="copy-action">Копировать</a>
-          <a href="#" class="delete-action">Удалить</a>
-        </div>
-      </div>
-    </li>
-    </ul>
-  <button id="add-view-btn" class="add-view-button">Добавить список</button>
-</div>
+	<header id="app-header">
+	  <div class="header-content"> <div class="header-left"> <button id="menu-toggle" class="menu-toggle-btn"> <i class="fas fa-bars"></i>
+		  </button>
+		</div>
+		<div class="header-right"> <div class="action-buttons">
+			<button id="export-csv">Экспорт в CSV</button>
+			<button id="print-table">Печать таблицы</button>
+			<button id="snapshot-table">Снимок таблицы</button>
+		  </div>
+		</div>
+	  </div>
+	</header>
 
-<div class="container" id="main-content">
-  <div class="action-buttons">
-    <button id="export-csv">Экспорт в CSV</button>
-    <button id="print-table">Печать таблицы</button>
-    <button id="snapshot-table">Снимок таблицы</button>
-  </div>
-  <div class="print-header-text">
-      <span class="print-date"></span> <span class="company-name">AQUA LUXE</span> <span class="print-right-filler"></span> </div>
+	<div class="container" id="main-content">
+	  <div class="print-header-text">
+		  <span class="print-date"></span> <span class="company-name">AQUA LUXE</span> <span class="print-right-filler"></span> </div>
 
-  <div class="print-header-image">
-      <img src="assets/logo.png" alt="Логотип для печати">
-  </div>
+	  <div class="print-header-image">
+		  <img src="assets/logo.png" alt="Логотип для печати">
+	  </div>
 
-  <h2 id="current-view-name" class="current-view-title">Список 1</h2>
-  <table id="product-table" data-current-view-id="view-1">
-    <thead>
-      <tr>
-        <th>№</th>
-        <th class="name-column-header">Наименование</th>
-        <th>Ед. изм.</th>
-        <th>Страна</th>
-        <th>Кол-во</th>
-        <th>Цена</th>
-        <th>Сумма</th>
-        <th>Удалить</th>
-      </tr>
-    </thead>
-    <tbody>
-      </tbody>
-    <tfoot>
-      <tr>
-        <td></td>         <td>Итого</td>         <td></td>         <td></td>         <td></td>         <td></td>         <td id="total-sum" data-total="0">0</td>         <td></td>
-      </tr>
-    </tfoot>
-  </table>
+	  <h2 id="current-view-name" class="current-view-title">Список 1</h2>
+	  <table id="product-table" data-current-view-id="view-1">
+		<thead>
+		  <tr>
+			<th>№</th>
+			<th class="name-column-header">Наименование</th>
+			<th>Ед. изм.</th>
+			<th>Страна</th>
+			<th>Кол-во</th>
+			<th>Цена</th>
+			<th>Сумма</th>
+			<th>Удалить</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  </tbody>
+		<tfoot>
+	   <tr>
+		<td></td>     <td>Итого</td>     <td></td>     <td></td>     <td></td>     <td></td>     <td id="total-sum" data-total="0">0</td>     <td></td>
+	   </tr>
+	  </tfoot>
+	  </table>
 
-</div>
+	</div>
 
-<div class="fab" id="add-row">+</div>
+	<footer id="app-footer">
+	  <div class="fab" id="add-row">+</div>
+	</footer>
 
-<script src="app.js"></script>
-</body>
-</html>
+	<script src="app.js"></script>
+	</body>
+	</html>
