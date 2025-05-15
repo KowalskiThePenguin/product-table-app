@@ -266,7 +266,7 @@ function updateSuggestionsUI(nameInput, suggestionsDropdown) {
             });
 
              // Обработчик клика по предложению
-            itemElement.addEventListener('click', () => {
+            itemElement.addEventListener('mousedown', () => {
                 console.log('Suggestion item clicked.');
                 try {
                      const selectedProduct = {
@@ -282,12 +282,22 @@ function updateSuggestionsUI(nameInput, suggestionsDropdown) {
                     console.log('Input value set by suggestion click:', nameInput.value);
 
                     // Вызываем onNameChange для обновления остальных ячеек строки
-                    onNameChange(nameInput.closest('tr'));
+                    // Передаем старое значение, но так как мы выбрали из списка, valueChanged будет true
+                    onNameChange(nameInput.closest('tr'), nameInput.dataset.prevValue || '');
+
 
                     // Скрываем выпадающий список и сбрасываем флаг
                     suggestionsDropdown.style.display = 'none';
                     nameInput._isSelectingSuggestion = false;
+                    const tr = nameInput.closest('tr');
+                    const qtyInput = tr.querySelector('.qty-input');
 
+                    if (qtyInput) {
+                        // Переводим фокус на поле количества с небольшой задержкой
+                         setTimeout(() => {
+                             qtyInput.focus();
+                         }, 0);
+                    }
 
                 } catch (error) {
                     console.error('Error during suggestion item click handling:', error);
@@ -585,23 +595,33 @@ function addRow(focusLastNameInput = true) {
 
     // --- ОБРАБОТЧИКИ ДЛЯ ПОЛЯ НАИМЕНОВАНИЯ (БЕЗ PASTE - PASTE ДЕЛЕГИРОВАН) ---
     nameInput.addEventListener('input', () => updateSuggestionsUI(nameInput, suggestionsDropdown));
-    nameInput.addEventListener('focus', () => { updateSuggestionsUI(nameInput, suggestionsDropdown); });
+    // Store the value on focus
+    nameInput.addEventListener('focus', () => {
+        nameInput.dataset.prevValue = nameInput.value;
+        updateSuggestionsUI(nameInput, suggestionsDropdown);
+    });
+    // Check for changes on blur and call onNameChange accordingly
     nameInput.addEventListener('blur', (e) => {
         setTimeout(() => {
             if (!nameInput._isSelectingSuggestion) {
                 suggestionsDropdown.style.display = 'none';
                 nameInput.setAttribute('aria-expanded', 'false');
-                onNameChange(tr);
+                const previousValue = nameInput.dataset.prevValue || ''; // Get stored value
+                onNameChange(tr, previousValue); // Pass previous value to onNameChange
             } else {
                  nameInput._isSelectingSuggestion = false;
             }
         }, 150); // Небольшая задержка, чтобы клик по предложению успел сработать до blur
     });
+    // Removed saveAppStateToLocalStorage from change listener as onNameChange handles saving
     nameInput.addEventListener('change', () => {
-         if (nameInput.value.trim() !== '') {
-             qtyInput.focus(); // Переводим фокус на поле количества после выбора названия
-         }
-         saveAppStateToLocalStorage(); // Сохраняем после изменения имени
+        // Focus on quantity input if name is not empty
+        if (nameInput.value.trim() !== '') {
+            const qtyInput = tr.querySelector('.qty-input');
+            if (qtyInput) {
+                qtyInput.focus();
+            }
+        }
     });
     // Обработчики для клавиатуры (стрелки, Enter, Escape, Tab) для автодополнения
     nameInput.addEventListener('keydown', (e) => handleNameInputKeydown(e, nameInput, suggestionsDropdown));
@@ -641,20 +661,11 @@ function addRow(focusLastNameInput = true) {
      return tr; // Возвращаем добавленную строку
 }
 
-function onNameChange(tr) {
+// Modified onNameChange function to accept previousValue and check for changes
+function onNameChange(tr, previousValue = '') {
    let input = tr.querySelector('.name-input');
     let inputValue = input ? input.value.trim() : '';
     let product = null;
-
-    if (inputValue) {
-         // Сначала ищем по точному совпадению названия
-         product = products.find(p => p.name.toLowerCase() === inputValue.toLowerCase());
-
-         // Если не нашли по названию, и ввод похож на ID (состоит только из цифр), ищем по ID
-         if (!product && /^\d+$/.test(inputValue)) {
-             product = products.find(p => p.id && p.id.trim() === inputValue.trim());
-         }
-    }
 
     const unitCell = tr.querySelector('.unit-cell');
     const countryCell = tr.querySelector('.country-cell');
@@ -662,52 +673,89 @@ function onNameChange(tr) {
     const qtyInput = tr.querySelector('.qty-input');
     const sumCell = tr.querySelector('.sum-cell');
 
-    if (product) {
-        tr.dataset.productId = product.id; // Сохраняем ID товара в data-атрибуте строки
-        input.value = product.name; // Устанавливаем полное название товара в поле ввода
-        unitCell.textContent = product.unit; // Обновляем ячейки с данными о товаре
-        countryCell.textContent = product.country;
-        priceCell.dataset.price = product.price; // Сохраняем цену в data-атрибуте
-        priceCell.textContent = formatNumberDisplay(product.price); // Отображаем отформатированную цену
+    // Determine if the value has changed from the previous value on focus
+    const valueChanged = inputValue !== previousValue.trim();
+    console.log(`onNameChange called for row ${tr.rowIndex}. Current: "${inputValue}", Previous: "${previousValue}". Value Changed: ${valueChanged}`);
 
-        // Сбрасываем количество и сумму при выборе нового товара
-        qtyInput.value = '';
-        sumCell.dataset.sum = 0;
-        sumCell.textContent = formatNumberDisplay(0);
 
-        onQtyChange(tr); // Пересчитываем сумму (хотя она будет 0) и обновляем итог
+    if (inputValue) {
+         // Search for product by name (case-insensitive)
+         product = products.find(p => p.name.toLowerCase() === inputValue.toLowerCase());
 
-        input.classList.remove('input-error'); // Убираем класс ошибки, если товар найден
-
-    } else {
-        // Если товар не найден по введенному значению
-        delete tr.dataset.productId; // Удаляем data-атрибут ID
-        // Очищаем остальные ячейки строки
-        if (inputValue !== '') { // Очищаем, только если в поле было что-то введено
-             unitCell.textContent = '';
-             countryCell.textContent = '';
-             priceCell.dataset.price = 0;
-             priceCell.textContent = formatNumberDisplay(0);
-         } else { // Если поле было пустым, просто убеждаемся, что другие ячейки пусты
-             unitCell.textContent = '';
-             countryCell.textContent = '';
-             priceCell.dataset.price = 0;
-             priceCell.textContent = formatNumberDisplay(0);
+         // If not found by name, and input looks like an ID, search by ID
+         if (!product && /^\d+$/.test(inputValue)) {
+             product = products.find(p => p.id && p.id.trim() === inputValue.trim());
          }
-         qtyInput.value = '';
-         sumCell.dataset.sum = 0;
-         sumCell.textContent = formatNumberDisplay(0);
-         onQtyChange(tr); // Пересчитываем сумму (будет 0) и обновляем итог
+    }
 
-         // Добавляем класс ошибки, если в поле что-то введено, но товар не найден
-         if (inputValue !== '') {
+    if (product) {
+        // Product found
+        tr.dataset.productId = product.id; // Save ID
+        input.value = product.name; // Set the found product name
+
+        // Always update linked cells with product data
+        unitCell.textContent = product.unit;
+        countryCell.textContent = product.country;
+        priceCell.dataset.price = product.price;
+        priceCell.textContent = formatNumberDisplay(product.price);
+
+        // Clear quantity and sum ONLY if the value changed before blur
+        if (valueChanged) {
+            console.log('Product found and value changed. Clearing qty/sum.');
+            qtyInput.value = '';
+            sumCell.dataset.sum = 0;
+            sumCell.textContent = formatNumberDisplay(0);
+        } else {
+             console.log('Product found, but value did not change. Keeping current qty/sum.');
+             // If value didn't change and product is the same (or was already found),
+             // keep the existing quantity and sum. Recalculate sum based on current qty and price.
+             const currentQty = parseFormattedNumber(qtyInput.value);
+             const currentPrice = parseFloat(priceCell.dataset.price) || 0;
+             const newSum = currentQty * currentPrice;
+             sumCell.dataset.sum = newSum;
+             sumCell.textContent = formatNumberDisplay(newSum);
+        }
+
+        input.classList.remove('input-error'); // Remove error class
+    } else {
+        // Product not found
+         delete tr.dataset.productId; // Remove ID
+
+         // Clear linked cells (unit, country, price, sum) and quantity
+         // ONLY if the value changed OR if the input is currently empty.
+         // If value did NOT change AND is NOT empty, we keep existing data (including error state if any).
+         if (valueChanged || inputValue === '') {
+              console.log('Product not found, and value changed or is empty. Clearing all linked cells.');
+              // Clear unit, country, price, sum
+              unitCell.textContent = '';
+              countryCell.textContent = '';
+              priceCell.dataset.price = 0;
+              priceCell.textContent = formatNumberDisplay(0);
+
+              // Clear quantity
+              qtyInput.value = '';
+              sumCell.dataset.sum = 0;
+              sumCell.textContent = formatNumberDisplay(0);
+         } else {
+              console.log('Product not found, but value did not change and is not empty. Keeping existing data.');
+              // If value didn't change and no product is found (meaning the previously entered text
+              // also didn't match a product), keep the existing text, quantity, unit, country, price, and sum.
+              // The error class should already be present if the text is not empty and doesn't match.
+         }
+
+
+         // Add or remove error class based on the *current* input value
+         // If the current value is not empty and doesn't match any product, add error class.
+         // If it's empty, remove error class.
+         if (inputValue !== '' && !products.some(p => p.name.toLowerCase() === inputValue.toLowerCase() || (p.id && p.id.trim() === inputValue.trim()))) {
             input.classList.add('input-error');
          } else {
             input.classList.remove('input-error');
          }
     }
-    recalcTotal(); // Пересчитываем общую сумму
-    saveAppStateToLocalStorage(); // Сохраняем состояние
+
+    recalcTotal(); // Recalculate total sum
+    saveAppStateToLocalStorage(); // Save application state
 }
 
 function onQtyChange(tr) {
@@ -841,21 +889,30 @@ function reAttachEventListenersToRows() {
 
             // Сохраняем ссылки на новые обработчики
             nameInput._inputHandler = () => updateSuggestionsUI(nameInput, suggestionsDropdown);
-            nameInput._focusHandler = () => { updateSuggestionsUI(nameInput, suggestionsDropdown); };
+            nameInput._focusHandler = () => {
+                 nameInput.dataset.prevValue = nameInput.value; // Store value on focus
+                 updateSuggestionsUI(nameInput, suggestionsDropdown);
+            };
             nameInput._blurHandler = (e) => {
                 setTimeout(() => {
                     if (!nameInput._isSelectingSuggestion) {
                         suggestionsDropdown.style.display = 'none';
                         nameInput.setAttribute('aria-expanded', 'false');
-                        onNameChange(tr);
+                        const previousValue = nameInput.dataset.prevValue || ''; // Get stored value
+                        onNameChange(tr, previousValue); // Pass previous value
                     } else {
                          nameInput._isSelectingSuggestion = false;
                     }
                 }, 150);
             };
+            // Removed saveAppStateToLocalStorage from change listener as onNameChange handles saving
              nameInput._changeHandler = () => {
-                 if (nameInput.value.trim() !== '') { qtyInput.focus(); }
-                 saveAppStateToLocalStorage();
+                 if (nameInput.value.trim() !== '') {
+                     const qtyInput = tr.querySelector('.qty-input');
+                     if (qtyInput) {
+                         qtyInput.focus();
+                     }
+                 }
             };
              nameInput._keydownHandler = (e) => handleNameInputKeydown(e, nameInput, suggestionsDropdown);
 
@@ -869,14 +926,51 @@ function reAttachEventListenersToRows() {
 
             // Привязываем обработчики к элементам предложений (если они есть)
              suggestionsDropdown.querySelectorAll('.suggestion-item').forEach(item => {
-                 if (item._clickHandler) item.removeEventListener('click', item._clickHandler);
+                 // Remove existing handlers first if they were attached directly to items
+                 // (Though the addSuggestionItemListeners function handles this when creating)
+                 // For safety, if needed, detach here before re-attaching.
+                 // Assuming addSuggestionItemListeners is the only place mousedown/click are attached
+                 // and it's called within updateSuggestionsUI, these persistent listeners
+                 // are handled by re-creating the dropdown content.
+
+                 // We need to re-attach the specific handler logic that calls onNameChange with previousValue
                  if (item._mousedownHandler) item.removeEventListener('mousedown', item._mousedownHandler);
+                 if (item._clickHandler) item.removeEventListener('mousedown', item._clickHandler); // Click was mousedown
 
-                 item._clickHandler = () => handleSuggestionClick(item, nameInput, tr);
+
                  item._mousedownHandler = () => { nameInput._isSelectingSuggestion = true; };
+                  // Use mousedown for suggestion click handling as before, and pass prevValue
+                 item._clickHandler = () => {
+                     console.log('Re-attached suggestion item clicked (mousedown).');
+                      try {
+                          const selectedProduct = {
+                              id: item.dataset.productId,
+                              name: item.dataset.productName,
+                              unit: item.dataset.productUnit,
+                              country: item.dataset.productCountry,
+                              price: parseFormattedNumber(item.dataset.productPrice)
+                          };
+                          nameInput.value = selectedProduct.name;
+                           // Pass previousValue here too, as selecting a suggestion IS a change
+                           onNameChange(tr, nameInput.dataset.prevValue || '');
+                          nameInput._isSelectingSuggestion = false;
+                          const qtyInput = tr.querySelector('.qty-input');
+                          if (qtyInput) {
+                              // Переводим фокус на поле количества с небольшой задержкой
+                              setTimeout(() => {
+                                  qtyInput.focus();
+                              }, 0);
+                          }
 
-                 item.addEventListener('click', item._clickHandler);
+                      } catch (error) {
+                          console.error('Error during re-attached suggestion mousedown handler:', error);
+                          nameInput._isSelectingSuggestion = false;
+                      }
+                 };
+
+
                  item.addEventListener('mousedown', item._mousedownHandler);
+                 item.addEventListener('mousedown', item._clickHandler); // Still use mousedown for click-like behavior
              });
         }
 
@@ -958,7 +1052,14 @@ function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
         case 'Enter':
             if (currentActive) {
                 e.preventDefault();
-                currentActive.click(); // Имитируем клик по выбранному предложению
+                // Use mousedown to trigger the suggestion selection logic
+                const mousedownEvent = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                currentActive.dispatchEvent(mousedownEvent);
+
             } else if (nameInput.value.trim() !== '') {
                  e.preventDefault();
                  // Если нет активного предложения, но есть введенный текст, переходим к полю количества
@@ -981,7 +1082,10 @@ function handleNameInputKeydown(e, nameInput, suggestionsDropdown) {
     }
 }
 
-// Обработчик клика по предложению для повторно привязанных слушателей
+// Обработчик клика по предложению для повторно привязанных слушателей (using mousedown)
+// This function is actually integrated into the mousedown handler in reAttachEventListenersToRows now.
+// Leaving it here for reference but it's not called directly anymore.
+/*
 function handleSuggestionClick(itemElement, nameInput, tr) {
     console.log('Re-attached suggestion item clicked.');
      try {
@@ -993,13 +1097,21 @@ function handleSuggestionClick(itemElement, nameInput, tr) {
              price: parseFormattedNumber(itemElement.dataset.productPrice)
          };
          nameInput.value = selectedProduct.name;
-         onNameChange(tr); // Обновляем строку
+         // Pass previousValue here too, as selecting a suggestion IS a change
+         onNameChange(tr, nameInput.dataset.prevValue || '');
          nameInput._isSelectingSuggestion = false; // Сбрасываем флаг
+         const qtyInput = tr.querySelector('.qty-input');
+         if (qtyInput) {
+             qtyInput.focus(); // Переводим фокус на поле количества
+
+         }
+
      } catch (error) {
          console.error('Error during re-attached suggestion click:', error);
          nameInput._isSelectingSuggestion = false;
      }
 }
+*/
 
 // Обработчик ввода символов для поля количества (разрешает только числа, точку, запятую)
 function handleQtyInputKeydownNum(e) {
@@ -1321,7 +1433,7 @@ function closeAllActionDropdowns(excludeDropdown = null) {
     });
 }
 
-// Закрытие меню и dropdown'ов при клике вне их
+// Закрытие меню и dropdown'ов при клике вне них
 document.addEventListener('click', (e) => {
      // Если клик был вне блока .view-actions, закрываем все dropdown'ы действий
      if (!e.target.closest('.view-actions')) {
@@ -1429,8 +1541,9 @@ async function initializeApp() {
                     if (targetInput.classList.contains('name-input')) {
                         currentTargetInput.value = trimmedLine; // Для имени используем тримированное значение
                          console.log(`Pasted Name "${trimmedLine}" into row ${currentRow.rowIndex} name input.`);
-                        onNameChange(currentRow);
-                        console.log(`Called onNameChange for row ${currentRow.rowIndex}.`);
+                        // When pasting, the value *is* changing, so we want the default onNameChange behavior
+                        onNameChange(currentRow, ''); // Pass empty previousValue to force valueChanged = true
+                        console.log(`Called onNameChange for row ${currentRow.rowIndex} after name paste.`);
                     } else if (targetInput.classList.contains('qty-input')) {
                          // Для количества, очищаем и форматируем значение
                          const sanitizedValue = sanitizeQtyInput({ value: line }); // Используем sanitize на исходной строке
@@ -1439,7 +1552,7 @@ async function initializeApp() {
                          currentTargetInput.value = numericValue > 0 ? formatNumberDisplay(numericValue) : (sanitizedValue === '0.' ? '0.' : ''); // Сохраняем "0." если нужно
                          console.log(`Pasted Qty "${currentTargetInput.value}" (parsed as ${numericValue}) into row ${currentRow.rowIndex} qty input.`);
                          onQtyChange(currentRow);
-                         console.log(`Called onQtyChange for row ${currentRow.rowIndex}.`);
+                         console.log(`Called onQtyChange for row ${currentRow.rowIndex} after qty paste.`);
                     }
 
                 } else {
