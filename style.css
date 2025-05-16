@@ -8,6 +8,7 @@ table {
     font-family: sans-serif;
     color: #333;
     table-layout: auto;
+    overflow-x: auto;
 }
 
 /* Стили ячеек и заголовков */
@@ -617,114 +618,6 @@ button#snapshot-table:active {
     }
 }
 
-/* --- Адаптивные настройки для кнопок на маленьких экранах --- */
-@media (max-width: 578px) {
-  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
-  #app-header .header-content {
-    display: flex; /* Убедимся, что это flex-контейнер */
-    justify-content: space-between; /* Распределяем пространство между элементами */
-    align-items: center; /* Выравнивание по центру по вертикали */
-    width: 100%; 
-  }
-button#export-csv {
-    padding: 0.8em 1.5em;
-    font-size: 0.8em;
-    color: #fff;
-    background-color: #28a745; /* Зеленый цвет */
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-}
-button#print-table {
-    padding: 0.8em 1.5em;
-    font-size: 0.8em;
-    color: #fff;
-    background-color: #007bff; /* Синий цвет */
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
-    transition: background-color 0.2s ease-in-out;
-}
-button#snapshot-table {
-    padding: 0.8em 1.5em;
-    font-size: 0.8em;
-    color: #fff;
-    background-color: #6c757d; /* Серый цвет */
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-left: 0.5em; /* Отступ слева */
-    transition: background-color 0.2s ease-in-out;
-}
-  .action-buttons {
-    align-items: center;
-    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
-    gap: 5px;
-    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
-    min-width: 0;
-  }
-
-  .action-buttons button {
-    /* Используем относительные единицы (em) для лучшей адаптивности */
-    padding: 0.5em 1em; /* Немного уменьшаем отступы */
-    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px; /* Используем px или em для border-radius */
-    cursor: pointer;
-    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
-    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
-    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
-    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
-    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
-  }
-
-  .action-buttons button:hover {
-    background-color: #0056b3;
-  }
-  /* Кнопки троеточия в списке видов */
-  .view-item .ellipsis-btn {
-    padding: 10px; /* Увеличенный padding */
-    font-size: 1.4em; /* Увеличиваем размер иконки */
-    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
-    /* min-height: 44px; */
-  }
-
-  /* Кнопки удаления строки */
-  .delete-btn {
-    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
-    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
-    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
-    /* min-height: 44px; */
-  }
-
-  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
-  .menu-toggle-btn {
-    font-size: 2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
-  }
-
-  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
-  .close-menu-btn {
-    padding: 10px; /* Добавляем padding для удобства */
-  }
-
-  /* Кнопка "Добавить список" */
-  .add-view-button {
-    font-size: 1.1em; /* Немного увеличиваем шрифт */
-    padding: 12px; /* Увеличиваем padding */
-  }
-
-  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
-  .suggestions-dropdown {
-    min-width: 180px; /* Увеличиваем минимальную ширину */
-    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
-  }
-}
-
 body {
     margin: 0;
     padding: 20px;
@@ -732,12 +625,16 @@ body {
 }
 
 .container {
-	min-height: 80vh;
-    margin: 0 auto;
-    padding: 0 15px;
-    overflow-x: auto;
-    transition: margin-left 0.3s ease !important; /* Совпадает с переходом меню */
-    padding-bottom: 130px; /* Убедитесь, что это значение присутствует и достаточно */
+    min-height: 80vh;
+    padding: 20px;
+    /* overflow-x: auto; */ /* Удалите или закомментируйте */
+    overflow-x: hidden; /* Скройте горизонтальное переполнение */
+    margin-left: 0;
+    margin-right: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 130px;
+    transition: all 0.3s ease-in-out, left 0.3s ease;
 }
 
 /* --- СТИЛИ ДЛЯ ПОЛЬЗОВАТЕЛЬСКОГО СПИСКА ПРЕДЛОЖЕНИЙ --- */
@@ -1216,4 +1113,1460 @@ body.menu-open .close-menu-btn {
          /* float: none !important; */
          /* text-align: initial !important; */
     }	
+}
+
+@media (max-width: 960px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+      /*
+       * Вычисляем коэффициент масштабирования:
+       * Текущая_ширина_окна_просмотра (100vw) / Ширина_точки_перелома (578).
+       * При ширине экрана 578px масштаб будет 1 (оригинальный размер).
+       * При ширине экрана меньше 578px масштаб будет меньше 1, пропорционально уменьшая всю таблицу.
+       */
+      transform: scale(1);
+      /*
+       * Важное замечание: Масштабированный элемент сохраняет свои
+       * первоначальные размеры в потоке документа. Это может привести к
+       * наложению элементов, идущих после таблицы, на масштабированную таблицу.
+       * Полное решение этой проблемы может потребовать JavaScript для
+       * динамической корректировки отступов или высоты контейнера.
+       * В рамках чисто CSS-подхода это ограничение трансформации.
+       */
+  }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+        transform-origin: top left; /* Точка масштабирования: верхний левый угол */
+        /*
+         * Фактор масштабирования: Ширина окна просмотра / Базовая ширина (960px)
+         * При 960px viewport масштаб = 1.0. Ниже 960px масштаб < 1.0.
+         */
+        transform: scale(calc(100vw / 960));
+
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+   #product-table, #product-table th, #product-table td,
+   #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+   }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+}
+
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    #product-table {
+        transform-origin: top left; /* Масштабируем от верхнего левого угла */
+        /*
+         * Фактор масштабирования: (Текущая ширина контейнера) / (Ширина контейнера при 960px viewport)
+         * Текущая ширина контейнера = calc(100vw - 40px) (если паддинг 20px)
+         * Ширина контейнера при 960px viewport = 960px - 40px = 920px
+         *
+         * Используйте 920 в знаменателе. Замените 40px на сумму горизонтальных паддингов вашего контейнера.
+         * Если таблица все равно обрезается справа, попробуйте немного уменьшить числитель, например, calc((100vw - 45px) / 920).
+         */
+        transform: scale(calc((100vw - 40px) / 920)); /* Формула масштабирования */
+
+        /*
+         * Управление пространством после масштабированной таблицы:
+         * Возможно, потребуется добавить нижний отступ к контейнеру внутри этого медиазапроса.
+         */
+         /* Например: padding-bottom: 250px; /* Добавьте нужный отступ */
+    }
+
+    /*
+     * Опционально: Установка минимального размера шрифта.
+     */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+        font-size: max(10px, 0.8em); /* Пример */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 9px 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+}
+@media (max-width: 870px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.9);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 106%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+}
+@media (max-width: 780px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 80% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 80%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.8);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 119%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+}
+@media (max-width: 700px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 70% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 70%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.72);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 134%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+}
+@media (max-width: 630px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 65% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 65%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.64);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 147%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+
+}
+@media (max-width: 560px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 55% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 55%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.56);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 170%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+
+}
+@media (max-width: 500px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 50% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 50%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.5);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 185%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+
+}
+@media (max-width: 440px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 45% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 45%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.44);
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 210%;
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+
+}
+@media (max-width: 400px) {
+  /* Добавляем стили для header-content, чтобы разделить header-left и header-right */
+  #app-header .header-content {
+    display: flex; /* Убедимся, что это flex-контейнер */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    width: 100%; 
+  }
+    .print-header-image {
+        display: block !important; /* Убедимся, что он block при печати */
+        text-align: center !important; /* <--- Убедимся, что !important есть и здесь */
+        margin-top: 0.5em !important;
+        margin-bottom: 1em !important;
+        width: 40% !important; /* Убедимся, что занимает всю ширину при печати */
+        box-sizing: border-box;
+    }
+
+    /* Стилизация самого изображения при печати */
+    .print-header-image img {
+         max-width: auto !important; /* Размер изображения при печати */
+         height: auto !important;
+         /* Убедитесь, что нет переопределений, мешающих центрированию */
+         /* float: none !important; */
+         /* text-align: initial !important; */
+    }	 
+	.print-header-text {
+    display: flex; /* Уже flex */
+    /* justify-content: space-between; */ /* <--- Возможно, эту строку можно убрать или изменить, т.к. flex-grow будет управлять */
+    justify-content: center; /* Центрируем содержимое контейнера, но flex-grow элементов распределит пространство */
+    align-items: center;
+    width: 40%;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+  #product-table {
+      transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
+        transform: scale(0.4);
+		height: 50%		
+    }
+    .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
+		width: 230%;
+		height: 50%
+	}
+  /*
+   * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
+   * можно попробовать установить минимальный размер шрифта внутри масштабированной таблицы.
+   * Это может немного нарушить идеальные пропорции, но улучшит удобство использования.
+   */
+    #product-table, #product-table th, #product-table td,
+    #product-table input, #product-table span {
+       font-size: max(10px, 0.8em); /* Пример: не меньше 10px и не меньше 0.7em от родительского размера */
+    }
+  
+button#export-csv {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #28a745; /* Зеленый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+button#print-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #007bff; /* Синий цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева от кнопки экспорта */
+    transition: background-color 0.2s ease-in-out;
+}
+button#snapshot-table {
+    padding: 0.8em 1.5em;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #6c757d; /* Серый цвет */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5em; /* Отступ слева */
+    transition: background-color 0.2s ease-in-out;
+}
+  .action-buttons {
+    align-items: center;
+    flex-wrap: nowrap; /* Убеждаемся, что кнопки остаются в одной строке */
+    gap: 5px;
+    /* Позволяем контейнеру сжиматься, если содержимое превышает доступную ширину */
+    min-width: 0;
+  }
+
+  .action-buttons button {
+    /* Используем относительные единицы (em) для лучшей адаптивности */
+    padding: 0.5em 1em; /* Немного уменьшаем отступы */
+    font-size: 0.9em; /* Используем em, размер шрифта будет зависеть от родительского элемента */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px; /* Используем px или em для border-radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Оставляем переход для hover эффекта */
+    /* Позволяем кнопкам сжиматься и предотвращаем их бесконечное уменьшение */
+    flex-shrink: 1; /* Разрешаем кнопке сжиматься */
+    min-width: 0; /* Позволяем сжиматься ниже размера содержимого, если необходимо */
+    box-sizing: border-box; /* Убеждаемся, что padding учитывается в общей ширине */
+  }
+
+  .action-buttons button:hover {
+    background-color: #0056b3;
+  }
+  /* Кнопки троеточия в списке видов */
+  .view-item .ellipsis-btn {
+    padding: 10px; /* Увеличенный padding */
+    font-size: 1.4em; /* Увеличиваем размер иконки */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопки удаления строки */
+  .delete-btn {
+    padding: 10px; /* Увеличенный padding вокруг символа '✕' */
+    font-size: 1.3em; /* Увеличиваем размер символа '✕' */
+    /* min-width: 44px; */ /* Минимальная площадь для нажатия (опционально) */
+    /* min-height: 44px; */
+  }
+
+  /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
+  .menu-toggle-btn {
+    font-size: 1.2em; /* Увеличиваем размер иконки */
+    padding: 15px; /* Увеличиваем padding для большей области нажатия */
+  }
+
+  /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
+  .close-menu-btn {
+    padding: 10px; /* Добавляем padding для удобства */
+  }
+
+  /* Кнопка "Добавить список" */
+  .add-view-button {
+    font-size: 1.1em; /* Немного увеличиваем шрифт */
+    padding: 9px 12px; /* Увеличиваем padding */
+  }
+
+  /* Если выпадающий список автодополнения слишком узкий на маленьких экранах */
+  .suggestions-dropdown {
+    min-width: 180px; /* Увеличиваем минимальную ширину */
+    /* width: 100%; */ /* Можно попробовать установить 100% ширины родительского элемента, если нужно */
+  }
+
 }
