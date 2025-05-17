@@ -1495,7 +1495,23 @@ async function initializeApp() {
     // Привязываем один обработчик paste к tableBody
     tableBody.addEventListener('paste', async (event) => {
         const targetInput = event.target;
+tableBody.addEventListener('input', handleInput);
+tableBody.addEventListener('keydown', handleKeydown); // Для Enter на десктопе
+tableBody.addEventListener('focusout', handleFocusout); // Для потери фокуса (предложения, сохранение)
+tableBody.addEventListener('change', handleChange); // *** ДОБАВЬТЕ ЭТУ СТРОКУ ***
+// --- Конец блока привязки обработчиков ---
 
+
+// --- НОВАЯ Функция обработки события 'change' ---
+function handleChange(event) {
+    const target = event.target;
+    // Проверяем, что событие произошло на поле ввода внутри ячейки таблицы
+     if (target.tagName === 'INPUT' && target.closest('td') && target.closest('tbody')) {
+         // Вызываем функцию перемещения фокуса
+         // Это сработает при фиксации значения (например, Enter или "Готово" на мобильных)
+         moveFocusToNextCell(target);
+     }
+}
         // Проверяем, является ли целью вставки поле Наименование или Количество
         if (targetInput.classList.contains('name-input') || targetInput.classList.contains('qty-input')) {
             event.preventDefault(); // Отменяем стандартную вставку
