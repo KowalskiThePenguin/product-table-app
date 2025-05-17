@@ -833,6 +833,7 @@ body.menu-open .close-menu-btn {
     position: absolute;
     top: 0;
     left: 0;
+	padding: 15px;
     width: 100%;
     display: flex;
     justify-content: space-between;
