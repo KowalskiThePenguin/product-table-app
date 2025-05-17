@@ -382,17 +382,7 @@ button#snapshot-table:active {
 }
 
 /* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
-@media print {
-    /* ... существующие правила для печати без изменений ... */
 
-    /* Скрываем кнопку снимка при печати */
-    button#snapshot-table {
-        display: none !important;
-    }
-    #network-status {
-        display: none !important;
-    }
-}
 
     .print-header-text {
         display: flex !important; /* Убедимся, что flexbox активен */
@@ -433,33 +423,42 @@ button#snapshot-table:active {
          flex-grow: 1 !important; /* <--- Позволяем "вырасти" */
          flex-shrink: 1 !important;
     }
-/* ... (остальные стили после блока @media print без изменений) ... */
-/* style.css */
-
-/* ... (существующие стили до блока @media print без изменений) ... */
 
 /* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
 @media print {
     /* Скрываем элементы, которые не нужны при печати */
     body {
-        background-color: #fff !important;
-        -webkit-print-color-adjust: exact;
+        background-color: #fff !important; /* Белый фон */
+        -webkit-print-color-adjust: exact; /* Печать точных цветов */
         color-adjust: exact;
-    }
-    html, body {
+        /* Убираем любые margin/padding/min-height, которые могут быть установлены для экрана */
         margin: 0 !important;
         padding: 0 !important;
-        /* Ensure no default min-height or other properties are adding space */
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important; /* Нет максимальной высоты */		
+        overflow: visible !important; /* Убедимся, что body не скрывает контент */
+        position: static !important; /* Убираем возможное позиционирование */
+    }
+    tbody {
+        /* *** ДОБАВЛЯЕМ/ИЗМЕНЯЕМ ЭТИ СВОЙСТВА ДЛЯ ВЕРТИКАЛЬНОГО РАСТЯГИВАНИЯ TBODY *** */
+        height: auto !important; /* Высота подстраивается под содержимое */
+        max-height: none !important; /* Нет максимальной высоты */
+        overflow: visible !important; /* Контент не скрывается по вертикали */
+        /* ********************************************************************* */
+    }
+    html {
+        margin: 0 !important;
+        padding: 0 !important;
         min-height: 0 !important;
         height: auto !important;
     }
-    .container {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: auto !important;
-        overflow: visible !important;
+    button#snapshot-table {
+        display: none !important;
     }
-
+    #network-status {
+        display: none !important;
+    }
     .fab,
     button#export-csv,
     button#print-table,
@@ -483,6 +482,11 @@ button#snapshot-table:active {
         padding: 0.5em !important; /* Возвращаем стандартный padding для остальных ячеек */
 	    border-collapse: collapse !important;
     }
+    table {
+       width: 100% !important;
+       page-break-inside: auto;
+      border-collapse: collapse !important;
+  }
     thead {
         display: table-row-group !important; /* Меняем с table-header-group */
         /* Это должно заставить его отобразиться только один раз в начале таблицы */
@@ -558,7 +562,6 @@ button#snapshot-table:active {
         padding: 0.5em !important; /* Пример padding'а из общих правил */
     }
 
-    /* !!! Устанавливаем минимальную ширину для ЯЧЕЙКИ наименования и разрешаем перенос текста !!! */
     thead th:nth-child(2) {
         text-align: center !important;
     }
@@ -633,7 +636,6 @@ body {
     margin-right: auto;
     margin-top: 0;
     margin-bottom: 0;
-    padding-bottom: 130px;
     transition: all 0.3s ease-in-out, left 0.3s ease;
 }
 
@@ -656,7 +658,7 @@ table tbody td:nth-child(2) {
     background-color: #fff;
     border: 1px solid #007bff;
     border-top: none;
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     box-sizing: border-box;
@@ -832,7 +834,6 @@ body.menu-open .close-menu-btn {
     top: 0;
     left: 0;
     width: 100%;
-    padding: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1068,7 +1069,6 @@ body.menu-open .close-menu-btn {
 }
 
 
-/* ... (остальные стили, включая @media print) ... */
 
 /* Адаптация стилей печати */
 @media print {
@@ -1085,10 +1085,6 @@ body.menu-open .close-menu-btn {
         margin-left: 0 !important;
     }
 
-    .container {
-        margin-left: 0 !important; /* Убеждаемся, что нет отступа */
-        padding: 0 !important; /* Убираем паддинги для печати */
-    }
 
     #app-header,
     #app-footer {
@@ -1237,7 +1233,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -1493,7 +1488,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -1643,7 +1637,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -1793,7 +1786,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -1943,7 +1935,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -2094,7 +2085,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -2245,7 +2235,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -2396,7 +2385,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
@@ -2455,11 +2443,9 @@ button#snapshot-table {
   #product-table {
       transform-origin: top left; /* Указываем точку масштабирования (верхний левый угол) */
         transform: scale(0.4);
-		height: 50%		
     }
     .container { /* Применяем масштабирование К КОНТЕЙНЕРУ */
 		width: 230%;
-		height: 50%
 	}
   /*
    * Опционально: Если при сильном масштабировании текст становится совсем нечитаемым,
@@ -2549,7 +2535,6 @@ button#snapshot-table {
   /* Кнопка переключения меню (уже фиксирована, но можно немного скорректировать) */
   .menu-toggle-btn {
     font-size: 1.2em; /* Увеличиваем размер иконки */
-    padding: 15px; /* Увеличиваем padding для большей области нажатия */
   }
 
   /* Кнопка закрытия меню (размер иконки уже большой, добавляем padding) */
