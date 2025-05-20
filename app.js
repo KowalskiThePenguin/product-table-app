@@ -1692,3 +1692,279 @@ window.addEventListener('beforeunload', () => {
     saveAppStateToLocalStorage();
 });
 // --- Конец блока автосохранения ---
+document.getElementById('print-table').addEventListener('click', async () => {
+    const productTable = document.getElementById('product-table');
+    const currentViewName = document.getElementById('current-view-name').textContent;
+    const printHeaderText = document.querySelector('.print-header-text');
+    const printHeaderImage = document.querySelector('.print-header-image');
+    
+    // Скрываем колонку "Удалить" перед печатью
+    const deleteColumnHeader = productTable.querySelector('th:last-child');
+    const deleteCells = productTable.querySelectorAll('td:last-child');
+    if (deleteColumnHeader) deleteColumnHeader.style.display = 'none';
+    deleteCells.forEach(cell => cell.style.display = 'none');
+
+    // Показываем заголовок для печати
+    if (printHeaderText) printHeaderText.style.display = 'flex';
+    if (printHeaderImage) printHeaderImage.style.display = 'block';
+
+    const doc = new jspdf.jsPDF('p', 'mm', 'a4'); // Портретная ориентация, миллиметры, формат A4
+
+    // Определение размеров страницы
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Заданное верхнее поле в мм
+    const topMargin = 10; 
+
+    // Захват HTML содержимого с помощью html2canvas
+    try {
+        const canvas = await html2canvas(productTable, {
+            scale: 2, // Увеличиваем масштаб для лучшего качества
+            useCORS: true, // Включите, если у вас есть изображения из других доменов
+            logging: true // Для отладки
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth; // Изображение будет занимать всю ширину страницы
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let yOffset = topMargin; // Начальная Y позиция с учетом верхнего поля
+
+        // Добавляем заголовок и логотип перед таблицей
+        // Это пример, вам может понадобиться более сложная логика позиционирования
+        if (printHeaderImage) {
+            const logoCanvas = await html2canvas(printHeaderImage, { scale: 2 });
+            const logoImgData = logoCanvas.toDataURL('image/png');
+            const logoHeight = (logoCanvas.height * (pageWidth * 0.3)) / logoCanvas.width; // Пример, лого занимает 30% ширины
+            doc.addImage(logoImgData, 'PNG', (pageWidth - (pageWidth * 0.3)) / 2, yOffset, pageWidth * 0.3, logoHeight); // По центру
+            yOffset += logoHeight + 5; // Отступ после логотипа
+        }
+
+        if (printHeaderText) {
+             const headerTextCanvas = await html2canvas(printHeaderText, { scale: 2 });
+             const headerTextImgData = headerTextCanvas.toDataURL('image/png');
+             const headerTextHeight = (headerTextCanvas.height * pageWidth) / headerTextCanvas.width;
+             doc.addImage(headerTextImgData, 'PNG', 0, yOffset, pageWidth, headerTextHeight); // Слева, на всю ширину
+             yOffset += headerTextHeight + 5; // Отступ после текста заголовка
+        }
+        
+        // Добавляем название текущего списка
+        doc.setFontSize(14);
+        doc.text(currentViewName, pageWidth / 2, yOffset, { align: 'center' });
+        yOffset += 10; // Отступ после названия
+
+        // Добавляем изображение таблицы
+        // Разделяем изображение таблицы на несколько страниц, если оно слишком большое
+        let heightLeft = imgHeight;
+        let position = 0; // Изначальная позиция в изображении таблицы
+
+        while (heightLeft >= 0) {
+            // Если это не первая страница, добавляем новую страницу
+            if (position != 0) {
+                doc.addPage();
+                yOffset = topMargin; // На каждой новой странице начинаем с верхнего поля
+            }
+
+            // Вычисляем высоту, которую мы можем уместить на текущей странице, учитывая верхнее поле
+            const contentHeight = Math.min(imgHeight, pageHeight - yOffset);
+
+            doc.addImage(
+                imgData,
+                'PNG',
+                0, // X координата (левое поле 0)
+                yOffset, // Y координата (с учетом верхнего поля)
+                imgWidth,
+                contentHeight,
+                null,
+                'NONE',
+                0,
+                position // Начало обрезки изображения
+            );
+
+            heightLeft -= (pageHeight - topMargin); // Уменьшаем оставшуюся высоту
+            position += (pageHeight - topMargin); // Перемещаем позицию обрезки изображения
+
+            // Если таблица полностью помещается, то heightLeft может стать отрицательным
+            if (heightLeft < 0 && position > imgHeight) {
+                heightLeft = 0; // Завершаем цикл
+            }
+        }
+        
+        // Восстанавливаем отображение колонки "Удалить"
+        if (deleteColumnHeader) deleteColumnHeader.style.display = '';
+        deleteCells.forEach(cell => cell.style.display = '');
+
+        // Скрываем заголовок для печати
+        if (printHeaderText) printHeaderText.style.display = 'none';
+        if (printHeaderImage) printHeaderImage.style.display = 'none';
+
+        doc.save(`${currentViewName}.pdf`);
+
+    } catch (error) {
+        console.error('Ошибка при генерации PDF:', error);
+        alert('Не удалось сгенерировать PDF. Пожалуйста, попробуйте еще раз.');
+        // Восстанавливаем отображение колонки "Удалить" в случае ошибки
+        if (deleteColumnHeader) deleteColumnHeader.style.display = '';
+        deleteCells.forEach(cell => cell.style.display = '');
+        if (printHeaderText) printHeaderText.style.display = 'none';
+        if (printHeaderImage) printHeaderImage.style.display = 'none';
+    }
+});
+
+document.getElementById('snapshot-table').addEventListener('click', async () => {
+    const productTable = document.getElementById('product-table');
+    const currentViewName = document.getElementById('current-view-name').textContent;
+    const printHeaderText = document.querySelector('.print-header-text');
+    const printHeaderImage = document.querySelector('.print-header-image');
+
+    // Временно скрываем колонку "Удалить"
+    const deleteColumnHeader = productTable.querySelector('th:last-child');
+    const deleteCells = productTable.querySelectorAll('td:last-child');
+    if (deleteColumnHeader) deleteColumnHeader.style.display = 'none';
+    deleteCells.forEach(cell => cell.style.display = 'none');
+
+    // Временно показываем заголовок для печати (чтобы он был включен в PDF)
+    if (printHeaderText) printHeaderText.style.display = 'flex';
+    if (printHeaderImage) printHeaderImage.style.display = 'block';
+
+    const doc = new jspdf.jsPDF('p', 'mm', 'a4'); // Портретная ориентация, миллиметры, формат A4
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const topMargin = 10;
+
+    let pdfArrayBuffer = null; // Здесь будет храниться PDF в виде ArrayBuffer
+
+    try {
+        const canvas = await html2canvas(productTable, {
+            scale: 2,
+            useCORS: true,
+            logging: true
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let yOffset = topMargin;
+
+        if (printHeaderImage) {
+            const logoCanvas = await html2canvas(printHeaderImage, { scale: 2 });
+            const logoImgData = logoCanvas.toDataURL('image/png');
+            const logoHeight = (logoCanvas.height * (pageWidth * 0.3)) / logoCanvas.width;
+            doc.addImage(logoImgData, 'PNG', (pageWidth - (pageWidth * 0.3)) / 2, yOffset, pageWidth * 0.3, logoHeight);
+            yOffset += logoHeight + 5;
+        }
+
+        if (printHeaderText) {
+            const headerTextCanvas = await html2canvas(printHeaderText, { scale: 2 });
+            const headerTextImgData = headerTextCanvas.toDataURL('image/png');
+            const headerTextHeight = (headerTextCanvas.height * pageWidth) / headerTextCanvas.width;
+            doc.addImage(headerTextImgData, 'PNG', 0, yOffset, pageWidth, headerTextHeight);
+            yOffset += headerTextHeight + 5;
+        }
+
+        doc.setFontSize(14);
+        doc.text(currentViewName, pageWidth / 2, yOffset, { align: 'center' });
+        yOffset += 10;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        while (heightLeft >= 0) {
+            if (position != 0) {
+                doc.addPage();
+                yOffset = topMargin;
+            }
+
+            const contentHeight = Math.min(imgHeight - position, pageHeight - yOffset); // Учитываем оставшуюся часть изображения
+            
+            doc.addImage(
+                imgData,
+                'PNG',
+                0, // X координата (левое поле 0)
+                yOffset, // Y координата (с учетом верхнего поля)
+                imgWidth,
+                contentHeight,
+                null,
+                'NONE',
+                0,
+                position // Начало обрезки изображения
+            );
+
+            heightLeft -= (pageHeight - topMargin); // Уменьшаем оставшуюся высоту
+            position += (pageHeight - topMargin); // Перемещаем позицию обрезки изображения
+        }
+
+        // Вместо doc.save(), получаем ArrayBuffer
+        pdfArrayBuffer = doc.output('arraybuffer');
+
+        // --- Рендеринг PDF на Canvas с помощью PDF.js ---
+        const pdf = await pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise;
+        const numPages = pdf.numPages;
+        const renderedCanvases = [];
+
+        for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 2 }); // Масштаб для качества
+            const renderCanvas = document.createElement('canvas');
+            const renderContext = renderCanvas.getContext('2d');
+            renderCanvas.height = viewport.height;
+            renderCanvas.width = viewport.width;
+
+            // Рендерим страницу PDF на canvas
+            await page.render({ canvasContext: renderContext, viewport: viewport }).promise;
+            renderedCanvases.push(renderCanvas);
+        }
+
+        // Объединяем все страницы в одно изображение (если их несколько)
+        let finalImageCanvas;
+        if (renderedCanvases.length === 1) {
+            finalImageCanvas = renderedCanvases[0];
+        } else {
+            // Если страниц несколько, создаем один большой канвас
+            let totalHeight = 0;
+            let maxWidth = 0;
+            renderedCanvases.forEach(canvas => {
+                totalHeight += canvas.height;
+                if (canvas.width > maxWidth) {
+                    maxWidth = canvas.width;
+                }
+            });
+
+            finalImageCanvas = document.createElement('canvas');
+            finalImageCanvas.width = maxWidth;
+            finalImageCanvas.height = totalHeight;
+            const finalImageContext = finalImageCanvas.getContext('2d');
+
+            let currentY = 0;
+            renderedCanvases.forEach(canvas => {
+                finalImageContext.drawImage(canvas, 0, currentY);
+                currentY += canvas.height;
+            });
+        }
+
+        // Создаем ссылку для скачивания изображения
+        const imgBlob = await new Promise(resolve => finalImageCanvas.toBlob(resolve, 'image/png'));
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(imgBlob);
+        link.download = `${currentViewName}_снимок.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href); // Освобождаем URL
+
+    } catch (error) {
+        console.error('Ошибка при создании снимка PDF:', error);
+        alert('Не удалось создать снимок таблицы из PDF. Пожалуйста, попробуйте еще раз.');
+    } finally {
+        // Восстанавливаем отображение колонки "Удалить"
+        if (deleteColumnHeader) deleteColumnHeader.style.display = '';
+        deleteCells.forEach(cell => cell.style.display = '');
+
+        // Скрываем заголовок для печати
+        if (printHeaderText) printHeaderText.style.display = 'none';
+        if (printHeaderImage) printHeaderImage.style.display = 'none';
+    }
+});
