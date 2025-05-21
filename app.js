@@ -1692,3 +1692,57 @@ window.addEventListener('beforeunload', () => {
     saveAppStateToLocalStorage();
 });
 // --- Конец блока автосохранения ---
+function handlePaste(event) {
+    const target = event.target;
+    // Проверяем, что вставка происходит в input type="text" внутри tbody productTable
+    if (target.tagName === 'INPUT' && target.type === 'text' && tableBody.contains(target)) {
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedText = clipboardData.getData('text');
+
+        event.preventDefault(); // Отменяем стандартное поведение
+
+        const rows = pastedText.split(/[\r\n]+/); // Разбиваем текст на строки
+        // Игнорируем пустые строки, которые могут появиться из-за лишних переносов в конце буфера обмена
+        const nonEmptyRows = rows.filter(row => row.trim() !== '');
+
+        if (nonEmptyRows.length > 0) {
+            let currentRow = target.closest('tr');
+            let currentInputIndex = Array.from(currentRow.querySelectorAll('input[type="text"]')).indexOf(target);
+
+            nonEmptyRows.forEach((rowText, rowIndex) => {
+                const cells = rowText.split('\t'); // Разбиваем строку на ячейки по табуляции
+
+                if (rowIndex === 0) {
+                    // Вставляем данные в текущую строку
+                    cells.forEach((cellText, cellIndex) => {
+                        const targetInput = currentRow.querySelectorAll('input[type="text"]')[currentInputIndex + cellIndex];
+                        if (targetInput) {
+                            targetInput.value = cellText.trim();
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
+                } else {
+                    // Для последующих строк добавляем новые строки и вставляем данные
+                    addRow(); // Предполагаем, что addRow() добавляет новую строку
+                    const newRow = tableBody.lastElementChild; // Получаем только что добавленную строку
+                    const newInputs = newRow.querySelectorAll('input[type="text"]');
+
+                    cells.forEach((cellText, cellIndex) => {
+                        const targetInput = newInputs[cellIndex];
+                        if (targetInput) {
+                            targetInput.value = cellText.trim();
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
+                }
+            });
+            // После вставки всех данных, пересчитать общую сумму
+            calculateTotal();
+            // Сохранить состояние таблицы после вставки
+            saveCurrentViewState();
+        }
+    }
+}
+
+// Добавляем слушатель события paste к tableBody
+tableBody.addEventListener('paste', handlePaste);
