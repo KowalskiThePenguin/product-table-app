@@ -26,96 +26,55 @@ const mainContent = document.getElementById('main-content');
 const fabButton = document.getElementById('add-row');
 const currentViewNameElement = document.getElementById('current-view-name');
 function handlePaste(event) {
-    console.log('Paste event triggered!');
+    const target = event.target;
+    // Проверяем, что вставка происходит в input type="text" внутри tbody productTable
+    if (target.tagName === 'INPUT' && target.type === 'text' && tableBody.contains(target)) {
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedText = clipboardData.getData('text');
 
-    const targetInput = event.target;
-    const cell = targetInput.closest('td');
-    const row = targetInput.closest('tr');
+        event.preventDefault(); // Отменяем стандартное поведение
 
-    if (!row || !event.clipboardData || !event.clipboardData.getData) {
-        console.log('Paste: Not a table row or no clipboard data.', { row, clipboardData: event.clipboardData });
-        return;
-    }
+        const rows = pastedText.split(/[\r\n]+/); // Разбиваем текст на строки
+        // Игнорируем пустые строки, которые могут появиться из-за лишних переносов в конце буфера обмена
+        const nonEmptyRows = rows.filter(row => row.trim() !== '');
 
-    event.preventDefault(); // Предотвращаем стандартное поведение вставки
-    console.log('Default prevented:', event.defaultPrevented);
+        if (nonEmptyRows.length > 0) {
+            let currentRow = target.closest('tr');
+            let currentInputIndex = Array.from(currentRow.querySelectorAll('input[type="text"]')).indexOf(target);
 
-    // Логируем доступные типы данных в буфере обмена
-    console.log('Clipboard data types:', event.clipboardData.types);
+            nonEmptyRows.forEach((rowText, rowIndex) => {
+                const cells = rowText.split('\t'); // Разбиваем строку на ячейки по табуляции
 
-    let pastedText = event.clipboardData.getData('text/plain'); // Явно запрашиваем 'text/plain'
-    console.log('Pasted text (text/plain):', `"${pastedText}"`);
+                if (rowIndex === 0) {
+                    // Вставляем данные в текущую строку
+                    cells.forEach((cellText, cellIndex) => {
+                        const targetInput = currentRow.querySelectorAll('input[type="text"]')[currentInputIndex + cellIndex];
+                        if (targetInput) {
+                            targetInput.value = cellText.trim();
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
+                } else {
+                    // Для последующих строк добавляем новые строки и вставляем данные
+                    addRow(); // Предполагаем, что addRow() добавляет новую строку
+                    const newRow = tableBody.lastElementChild; // Получаем только что добавленную строку
+                    const newInputs = newRow.querySelectorAll('input[type="text"]');
 
-    // Если text/plain пуст, попробуем получить text/html
-    if (!pastedText && event.clipboardData.types.includes('text/html')) {
-        const htmlText = event.clipboardData.getData('text/html');
-        console.log('Pasted text (text/html available, attempting to get):', `"${htmlText ? htmlText.substring(0, 200) + '...' : 'EMPTY'}"`); // Логируем начало HTML, чтобы не перегружать консоль
-
-        // Попытка извлечь текст из HTML, если это возможно.
-        // Это упрощенная логика, которая может не сработать для сложного HTML.
-        // Для более надежного парсинга HTML требуется DOMParser или другая библиотека.
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlText;
-        pastedText = tempDiv.textContent || ''; // Извлекаем чистый текст из HTML
-        console.log('Pasted text (extracted from HTML):', `"${pastedText}"`);
-    }
-
-    // Если после всех попыток текст все еще пуст, выходим
-    if (!pastedText) {
-        console.log('No usable text found in clipboard.');
-        return;
-    }
-
-
-    // Теперь продолжение логики парсинга, как раньше
-    if (!pastedText.includes('\t') && !pastedText.includes('\n')) {
-        console.log('Pasted text contains no tabs or newlines. Inserting into current field.');
-        targetInput.value = pastedText.trim();
-        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-        saveAppStateToLocalStorage();
-        updateTotalSum();
-        return;
-    }
-
-    const rowsData = pastedText.split('\n').map(rowStr => rowStr.split('\t'));
-    console.log('Parsed rowsData:', rowsData);
-
-    let currentRow = row;
-    const initialInputsInRow = Array.from(row.querySelectorAll('input[type="text"]'));
-    let startIndex = initialInputsInRow.indexOf(targetInput);
-    if (startIndex === -1) {
-        console.warn('Target input not found in initial row inputs. Starting from first input.');
-        startIndex = 0;
-    }
-    console.log('Starting fill index:', startIndex);
-
-    rowsData.forEach((rowData, rowIndex) => {
-        if (rowIndex > 0) {
-            console.log('Adding new row for rowData index:', rowIndex);
-            addRow();
-            currentRow = productTable.querySelector('tbody').lastElementChild;
-            startIndex = 0;
+                    cells.forEach((cellText, cellIndex) => {
+                        const targetInput = newInputs[cellIndex];
+                        if (targetInput) {
+                            targetInput.value = cellText.trim();
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
+                }
+            });
+            // После вставки всех данных, пересчитать общую сумму
+            calculateTotal();
+            // Сохранить состояние таблицы после вставки
+            saveCurrentViewState();
         }
-
-        const inputsInCurrentRow = Array.from(currentRow.querySelectorAll('input[type="text"]'));
-        console.log(`Inputs in current row (rowIndex ${rowIndex}):`, inputsInCurrentRow.length);
-
-        rowData.forEach((cellData, cellIndex) => {
-            const targetInputIndex = startIndex + cellIndex;
-
-            if (inputsInCurrentRow[targetInputIndex]) {
-                console.log(`Filling input at index ${targetInputIndex} with: "${cellData.trim()}"`);
-                inputsInCurrentRow[targetInputIndex].value = cellData.trim();
-                inputsInCurrentRow[targetInputIndex].dispatchEvent(new Event('input', { bubbles: true }));
-            } else {
-                console.log(`No input found at index ${targetInputIndex} in current row. Skipping: "${cellData.trim()}"`);
-            }
-        });
-    });
-
-    saveAppStateToLocalStorage();
-    updateTotalSum();
-    console.log('Paste handling complete.');
+    }
 }
 
 // Добавляем слушатель события paste к tableBody
@@ -848,11 +807,6 @@ function onNameChange(tr, previousValue = '') {
             input.classList.remove('input-error');
          }
     }
-    newRow.querySelectorAll('input[type="text"]').forEach(input => {
-        input.addEventListener('paste', handlePaste);
-        // Дополнительно: для отладки можно добавить визуальный индикатор, если paste listener прикреплен
-        // input.style.border = '2px solid green'; // Удалить после отладки
-    });
 
     recalcTotal(); // Recalculate total sum
     saveAppStateToLocalStorage(); // Save application state
@@ -1447,19 +1401,10 @@ function deleteView(viewItem) {
     const viewIdToDelete = viewItem.dataset.viewId;
 
     // Не удаляем, если остался только один список
-    if (Object.keys(viewStates).length <= 0) {
+    if (Object.keys(viewStates).length <= 1) {
         alert('Нельзя удалить последний список.');
         closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown')); // Закрываем dropdown
         return;
-    } else {
-        // Если данные загружены, прикрепите обработчики paste к существующим инпутам
-        console.log('Attaching paste listeners to existing inputs...');
-        tableBody.querySelectorAll('tr input[type="text"]').forEach(input => {
-            input.addEventListener('paste', handlePaste);
-            // input.style.border = '2px solid blue'; // Удалить после отладки
-        });
-        updateCurrentViewNameDisplay();
-        updateTotalSum();
     }
 
     const viewName = viewMetadata[viewIdToDelete] || viewItem.querySelector('span').textContent; // Берем имя из метаданных
@@ -1801,3 +1746,46 @@ window.addEventListener('beforeunload', () => {
     saveAppStateToLocalStorage();
 });
 // --- Конец блока автосохранения ---
+async function pasteFromClipboardManually() {
+    try {
+        let targetInput = document.activeElement;
+
+        // Если активный элемент не поле ввода — попробуем взять последний input в таблице
+        if (!(targetInput && targetInput.tagName === 'INPUT' && tableBody.contains(targetInput))) {
+            const inputs = tableBody.querySelectorAll('input[type="text"]');
+            if (inputs.length > 0) {
+                targetInput = inputs[inputs.length - 1]; // Берём последний input
+                targetInput.focus();
+            } else {
+                alert("Нет доступных полей ввода в таблице.");
+                return;
+            }
+        }
+
+        const selectionStart = targetInput.selectionStart;
+        const selectionEnd = targetInput.selectionEnd;
+
+        const text = await navigator.clipboard.readText();
+        if (!text) {
+            alert("Буфер обмена пуст.");
+            return;
+        }
+
+        setTimeout(() => {
+            targetInput.focus();
+            if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
+                targetInput.setSelectionRange(selectionStart, selectionEnd);
+            }
+
+            const fakePasteEvent = new ClipboardEvent('paste', {
+                clipboardData: new DataTransfer(),
+                bubbles: true
+            });
+            fakePasteEvent.clipboardData.setData('text/plain', text);
+            targetInput.dispatchEvent(fakePasteEvent);
+        }, 0);
+    } catch (err) {
+        console.error("Ошибка при доступе к буферу обмена:", err);
+        alert("Не удалось получить доступ к буферу обмена.");
+    }
+}
