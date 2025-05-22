@@ -1748,18 +1748,11 @@ window.addEventListener('beforeunload', () => {
 // --- Конец блока автосохранения ---
 async function pasteFromClipboardManually() {
     try {
-        let targetInput = document.activeElement;
+        const targetInput = document.activeElement;
 
-        // Если активный элемент не поле ввода — попробуем взять последний input в таблице
         if (!(targetInput && targetInput.tagName === 'INPUT' && tableBody.contains(targetInput))) {
-            const inputs = tableBody.querySelectorAll('input[type="text"]');
-            if (inputs.length > 0) {
-                targetInput.setSelectionRange(selectionStart, selectionEnd);
-                targetInput.focus();
-            } else {
-                alert("Нет доступных полей ввода в таблице.");
-                return;
-            }
+            alert("Сначала нажмите в нужное поле ввода.");
+            return;
         }
 
         const selectionStart = targetInput.selectionStart;
@@ -1771,6 +1764,7 @@ async function pasteFromClipboardManually() {
             return;
         }
 
+        // Возвращаем фокус, т.к. иногда теряется на мобилках
         setTimeout(() => {
             targetInput.focus();
             if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
