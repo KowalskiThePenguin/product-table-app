@@ -80,7 +80,8 @@
 	   </tr>
 	  </tfoot>
 	  </table>
-		<span onclick="pasteFromClipboardManually()" style="cursor:pointer; padding:6px 12px; background:#4caf50; color:#fff; border-radius:4px; user-select:none;">📋 Вставить</span>
+		<textarea id="manual-paste-area" placeholder="Вставьте сюда данные" style="display:none;"></textarea>
+<button onclick="openManualPaste()">📋 Вставить вручную</button>
 
 	</div>
 
