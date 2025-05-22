@@ -1754,7 +1754,7 @@ async function pasteFromClipboardManually() {
         if (!(targetInput && targetInput.tagName === 'INPUT' && tableBody.contains(targetInput))) {
             const inputs = tableBody.querySelectorAll('input[type="text"]');
             if (inputs.length > 0) {
-                targetInput = inputs[inputs.length - 1]; // Берём последний input
+                targetInput.setSelectionRange(selectionStart, selectionEnd);
                 targetInput.focus();
             } else {
                 alert("Нет доступных полей ввода в таблице.");
