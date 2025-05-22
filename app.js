@@ -26,7 +26,7 @@ const mainContent = document.getElementById('main-content');
 const fabButton = document.getElementById('add-row');
 const currentViewNameElement = document.getElementById('current-view-name');
 function handlePaste(event) {
-    console.log('Paste event triggered!'); // Проверяем, что событие вообще сработало
+    console.log('Paste event triggered!');
 
     const targetInput = event.target;
     const cell = targetInput.closest('td');
@@ -37,35 +37,55 @@ function handlePaste(event) {
         return;
     }
 
-    console.log('Attempting to prevent default...');
     event.preventDefault(); // Предотвращаем стандартное поведение вставки
-    console.log('Default prevented:', event.defaultPrevented); // Проверяем, сработало ли preventDefault
+    console.log('Default prevented:', event.defaultPrevented);
 
-    const pastedText = event.clipboardData.getData('text');
-    console.log('Pasted text:', `"${pastedText}"`); // Важно: увидим, что именно вставилось
+    // Логируем доступные типы данных в буфере обмена
+    console.log('Clipboard data types:', event.clipboardData.types);
 
-    // Если вставляется только одна строка без табуляций, возможно, не нужно парсить как таблицу
+    let pastedText = event.clipboardData.getData('text/plain'); // Явно запрашиваем 'text/plain'
+    console.log('Pasted text (text/plain):', `"${pastedText}"`);
+
+    // Если text/plain пуст, попробуем получить text/html
+    if (!pastedText && event.clipboardData.types.includes('text/html')) {
+        const htmlText = event.clipboardData.getData('text/html');
+        console.log('Pasted text (text/html available, attempting to get):', `"${htmlText ? htmlText.substring(0, 200) + '...' : 'EMPTY'}"`); // Логируем начало HTML, чтобы не перегружать консоль
+
+        // Попытка извлечь текст из HTML, если это возможно.
+        // Это упрощенная логика, которая может не сработать для сложного HTML.
+        // Для более надежного парсинга HTML требуется DOMParser или другая библиотека.
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlText;
+        pastedText = tempDiv.textContent || ''; // Извлекаем чистый текст из HTML
+        console.log('Pasted text (extracted from HTML):', `"${pastedText}"`);
+    }
+
+    // Если после всех попыток текст все еще пуст, выходим
+    if (!pastedText) {
+        console.log('No usable text found in clipboard.');
+        return;
+    }
+
+
+    // Теперь продолжение логики парсинга, как раньше
     if (!pastedText.includes('\t') && !pastedText.includes('\n')) {
         console.log('Pasted text contains no tabs or newlines. Inserting into current field.');
         targetInput.value = pastedText.trim();
         targetInput.dispatchEvent(new Event('input', { bubbles: true }));
         saveAppStateToLocalStorage();
         updateTotalSum();
-        return; // Выходим, если это просто текст для одного поля
+        return;
     }
 
     const rowsData = pastedText.split('\n').map(rowStr => rowStr.split('\t'));
     console.log('Parsed rowsData:', rowsData);
 
     let currentRow = row;
-    // currentCellIndex - это индекс TD, а не input. Нам нужен индекс input относительно других input-ов в строке.
-    // Или, проще, найдем все input-ы в текущей строке и начнем заполнение с того, в который была вставка.
-
     const initialInputsInRow = Array.from(row.querySelectorAll('input[type="text"]'));
     let startIndex = initialInputsInRow.indexOf(targetInput);
     if (startIndex === -1) {
         console.warn('Target input not found in initial row inputs. Starting from first input.');
-        startIndex = 0; // На всякий случай, если что-то пошло не так
+        startIndex = 0;
     }
     console.log('Starting fill index:', startIndex);
 
@@ -74,7 +94,7 @@ function handlePaste(event) {
             console.log('Adding new row for rowData index:', rowIndex);
             addRow();
             currentRow = productTable.querySelector('tbody').lastElementChild;
-            startIndex = 0; // Для новой строки начинаем заполнение с первого инпута
+            startIndex = 0;
         }
 
         const inputsInCurrentRow = Array.from(currentRow.querySelectorAll('input[type="text"]'));
@@ -84,11 +104,11 @@ function handlePaste(event) {
             const targetInputIndex = startIndex + cellIndex;
 
             if (inputsInCurrentRow[targetInputIndex]) {
-                console.log(`Filling input at index <span class="math-inline">\{targetInputIndex\} with\: "</span>{cellData.trim()}"`);
+                console.log(`Filling input at index ${targetInputIndex} with: "${cellData.trim()}"`);
                 inputsInCurrentRow[targetInputIndex].value = cellData.trim();
                 inputsInCurrentRow[targetInputIndex].dispatchEvent(new Event('input', { bubbles: true }));
             } else {
-                console.log(`No input found at index <span class="math-inline">\{targetInputIndex\} in current row\. Skipping\: "</span>{cellData.trim()}"`);
+                console.log(`No input found at index ${targetInputIndex} in current row. Skipping: "${cellData.trim()}"`);
             }
         });
     });
