@@ -26,47 +26,76 @@ const mainContent = document.getElementById('main-content');
 const fabButton = document.getElementById('add-row');
 const currentViewNameElement = document.getElementById('current-view-name');
 function handlePaste(event) {
-    const targetInput = event.target; // Поле ввода, куда происходит вставка
-    const cell = targetInput.closest('td'); // Ячейка, содержащая поле ввода
-    const row = targetInput.closest('tr'); // Строка, содержащая поле ввода
+    console.log('Paste event triggered!'); // Проверяем, что событие вообще сработало
 
-    // Если это не поле ввода в таблице, или если вставка не содержит текста, выходим
+    const targetInput = event.target;
+    const cell = targetInput.closest('td');
+    const row = targetInput.closest('tr');
+
     if (!row || !event.clipboardData || !event.clipboardData.getData) {
+        console.log('Paste: Not a table row or no clipboard data.', { row, clipboardData: event.clipboardData });
         return;
     }
 
+    console.log('Attempting to prevent default...');
     event.preventDefault(); // Предотвращаем стандартное поведение вставки
+    console.log('Default prevented:', event.defaultPrevented); // Проверяем, сработало ли preventDefault
 
     const pastedText = event.clipboardData.getData('text');
-    const rowsData = pastedText.split('\n').map(row => row.split('\t'));
+    console.log('Pasted text:', `"${pastedText}"`); // Важно: увидим, что именно вставилось
+
+    // Если вставляется только одна строка без табуляций, возможно, не нужно парсить как таблицу
+    if (!pastedText.includes('\t') && !pastedText.includes('\n')) {
+        console.log('Pasted text contains no tabs or newlines. Inserting into current field.');
+        targetInput.value = pastedText.trim();
+        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        saveAppStateToLocalStorage();
+        updateTotalSum();
+        return; // Выходим, если это просто текст для одного поля
+    }
+
+    const rowsData = pastedText.split('\n').map(rowStr => rowStr.split('\t'));
+    console.log('Parsed rowsData:', rowsData);
 
     let currentRow = row;
-    let currentCellIndex = Array.from(currentRow.children).indexOf(cell);
+    // currentCellIndex - это индекс TD, а не input. Нам нужен индекс input относительно других input-ов в строке.
+    // Или, проще, найдем все input-ы в текущей строке и начнем заполнение с того, в который была вставка.
+
+    const initialInputsInRow = Array.from(row.querySelectorAll('input[type="text"]'));
+    let startIndex = initialInputsInRow.indexOf(targetInput);
+    if (startIndex === -1) {
+        console.warn('Target input not found in initial row inputs. Starting from first input.');
+        startIndex = 0; // На всякий случай, если что-то пошло не так
+    }
+    console.log('Starting fill index:', startIndex);
 
     rowsData.forEach((rowData, rowIndex) => {
-        // Если это не первая строка (при вставке нескольких строк), добавляем новую строку
         if (rowIndex > 0) {
-            addRow(); // Функция addRow должна добавлять новую строку в конец таблицы
+            console.log('Adding new row for rowData index:', rowIndex);
+            addRow();
             currentRow = productTable.querySelector('tbody').lastElementChild;
-            currentCellIndex = 1; // Начинаем со второй колонки (после "№")
+            startIndex = 0; // Для новой строки начинаем заполнение с первого инпута
         }
 
-        const inputsInRow = Array.from(currentRow.querySelectorAll('input[type="text"]'));
-        
+        const inputsInCurrentRow = Array.from(currentRow.querySelectorAll('input[type="text"]'));
+        console.log(`Inputs in current row (rowIndex ${rowIndex}):`, inputsInCurrentRow.length);
+
         rowData.forEach((cellData, cellIndex) => {
-            const targetInputIndex = currentCellIndex + cellIndex -1; // -1 чтобы не учитывать номер по порядку
-             // Проверяем, существует ли целевое поле ввода в текущей строке
-            if (inputsInRow[targetInputIndex]) {
-                inputsInRow[targetInputIndex].value = cellData.trim();
-                // Запускаем событие 'input' или 'change' для обновления расчетов, если они привязаны
-                inputsInRow[targetInputIndex].dispatchEvent(new Event('input', { bubbles: true }));
+            const targetInputIndex = startIndex + cellIndex;
+
+            if (inputsInCurrentRow[targetInputIndex]) {
+                console.log(`Filling input at index <span class="math-inline">\{targetInputIndex\} with\: "</span>{cellData.trim()}"`);
+                inputsInCurrentRow[targetInputIndex].value = cellData.trim();
+                inputsInCurrentRow[targetInputIndex].dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                console.log(`No input found at index <span class="math-inline">\{targetInputIndex\} in current row\. Skipping\: "</span>{cellData.trim()}"`);
             }
         });
     });
 
-    // После вставки данных, сохраняем состояние
     saveAppStateToLocalStorage();
-    updateTotalSum(); // Обновляем общую сумму, если вставлялись количества/цены
+    updateTotalSum();
+    console.log('Paste handling complete.');
 }
 
 // Добавляем слушатель события paste к tableBody
@@ -801,6 +830,8 @@ function onNameChange(tr, previousValue = '') {
     }
     newRow.querySelectorAll('input[type="text"]').forEach(input => {
         input.addEventListener('paste', handlePaste);
+        // Дополнительно: для отладки можно добавить визуальный индикатор, если paste listener прикреплен
+        // input.style.border = '2px solid green'; // Удалить после отладки
     });
 
     recalcTotal(); // Recalculate total sum
@@ -1396,14 +1427,16 @@ function deleteView(viewItem) {
     const viewIdToDelete = viewItem.dataset.viewId;
 
     // Не удаляем, если остался только один список
-    if (Object.keys(viewStates).length <= 1) {
+    if (Object.keys(viewStates).length <= 0) {
         alert('Нельзя удалить последний список.');
         closeAllActionDropdowns(viewItem.querySelector('.actions-dropdown')); // Закрываем dropdown
         return;
     } else {
         // Если данные загружены, прикрепите обработчики paste к существующим инпутам
+        console.log('Attaching paste listeners to existing inputs...');
         tableBody.querySelectorAll('tr input[type="text"]').forEach(input => {
             input.addEventListener('paste', handlePaste);
+            // input.style.border = '2px solid blue'; // Удалить после отладки
         });
         updateCurrentViewNameDisplay();
         updateTotalSum();
