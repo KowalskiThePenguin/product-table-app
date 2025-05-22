@@ -1783,3 +1783,33 @@ async function pasteFromClipboardManually() {
         alert("Не удалось получить доступ к буферу обмена.");
     }
 }
+
+function openManualPaste() {
+    const area = document.getElementById('manual-paste-area');
+    area.style.display = 'block';
+    area.focus();
+
+    area.onblur = () => {
+        const text = area.value.trim();
+        if (text) {
+            simulatePasteFromText(text);
+        }
+        area.style.display = 'none';
+        area.value = '';
+    };
+}
+
+function simulatePasteFromText(text) {
+    const activeInput = document.activeElement;
+    if (activeInput.tagName === 'INPUT' && tableBody.contains(activeInput)) {
+        const fakeEvent = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            bubbles: true
+        });
+        fakeEvent.clipboardData.setData('text/plain', text);
+        activeInput.dispatchEvent(fakeEvent);
+    } else {
+        alert("Сначала выберите поле для вставки.");
+    }
+}
+
