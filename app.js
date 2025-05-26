@@ -25,60 +25,71 @@ const totalSumCell = document.getElementById('total-sum');
 const mainContent = document.getElementById('main-content');
 const fabButton = document.getElementById('add-row');
 const currentViewNameElement = document.getElementById('current-view-name');
-function handlePaste(event) {
-    const target = event.target;
-    // Проверяем, что вставка происходит в input type="text" внутри tbody productTable
-    if (target.tagName === 'INPUT' && target.type === 'text' && tableBody.contains(target)) {
-        const clipboardData = event.clipboardData || window.clipboardData;
-        const pastedText = clipboardData.getData('text');
+let lastFocusedInput = null;
 
-        event.preventDefault(); // Отменяем стандартное поведение
-
-        const rows = pastedText.split(/[\r\n]+/); // Разбиваем текст на строки
-        // Игнорируем пустые строки, которые могут появиться из-за лишних переносов в конце буфера обмена
-        const nonEmptyRows = rows.filter(row => row.trim() !== '');
-
-        if (nonEmptyRows.length > 0) {
-            let currentRow = target.closest('tr');
-            let currentInputIndex = Array.from(currentRow.querySelectorAll('input[type="text"]')).indexOf(target);
-
-            nonEmptyRows.forEach((rowText, rowIndex) => {
-                const cells = rowText.split('\t'); // Разбиваем строку на ячейки по табуляции
-
-                if (rowIndex === 0) {
-                    // Вставляем данные в текущую строку
-                    cells.forEach((cellText, cellIndex) => {
-                        const targetInput = currentRow.querySelectorAll('input[type="text"]')[currentInputIndex + cellIndex];
-                        if (targetInput) {
-                            targetInput.value = cellText.trim();
-                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    });
-                } else {
-                    // Для последующих строк добавляем новые строки и вставляем данные
-                    addRow(); // Предполагаем, что addRow() добавляет новую строку
-                    const newRow = tableBody.lastElementChild; // Получаем только что добавленную строку
-                    const newInputs = newRow.querySelectorAll('input[type="text"]');
-
-                    cells.forEach((cellText, cellIndex) => {
-                        const targetInput = newInputs[cellIndex];
-                        if (targetInput) {
-                            targetInput.value = cellText.trim();
-                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    });
-                }
-            });
-            // После вставки всех данных, пересчитать общую сумму
-            calculateTotal();
-            // Сохранить состояние таблицы после вставки
-            saveCurrentViewState();
-        }
+// Отслеживаем последний input с фокусом
+tableBody.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+        lastFocusedInput = e.target;
     }
-}
+});
 
-// Добавляем слушатель события paste к tableBody
-tableBody.addEventListener('paste', handlePaste);
+// Обработка paste на стадии захвата (capture=true)
+document.addEventListener('paste', (event) => {
+    if (!lastFocusedInput || !tableBody.contains(lastFocusedInput)) return;
+
+    const clipboardData = event.clipboardData || window.clipboardData;
+    const pastedText = clipboardData.getData('text');
+    const lines = pastedText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+    if (lines.length === 0) return;
+
+    event.stopImmediatePropagation(); // 💥 Блокирует ВСЕ другие paste
+    event.preventDefault();           // 💥 Запрещает дефолтную вставку
+
+    const currentRow = lastFocusedInput.closest('tr');
+    const currentRowIndex = Array.from(tableBody.rows).indexOf(currentRow);
+    const currentInputIndex = Array.from(currentRow.querySelectorAll('input[type="text"]')).indexOf(lastFocusedInput);
+
+    // Добавляем строки, если их не хватает
+    const neededRows = currentRowIndex + lines.length;
+    while (tableBody.rows.length < neededRows) {
+        addRow(false); // не фокусируем
+    }
+
+    lines.forEach((lineText, i) => {
+        const row = tableBody.rows[currentRowIndex + i];
+        const inputs = row.querySelectorAll('input[type="text"]');
+        const cells = lineText.split('\t');
+
+        cells.forEach((cellText, j) => {
+            const input = inputs[currentInputIndex + j];
+            if (input) {
+                input.value = cellText.trim();
+                // Instead of dispatching 'input' event which triggers suggestions,
+                // directly call onNameChange if it's the name input.
+                // For other inputs (qty, etc.), just setting the value is enough.
+                if (input.classList.contains('name-input')) {
+                    // Assuming onNameChange can handle direct calls
+                    // and will find product data if the name matches.
+                    // Pass the row and the old value (empty string, as it's a new paste)
+                    onNameChange(input.closest('tr'), '');
+                    // Manually hide suggestions if they appear for pasted name
+                    const suggestionsDropdown = input.nextElementSibling;
+                    if (suggestionsDropdown && suggestionsDropdown.classList.contains('suggestions-dropdown')) {
+                        suggestionsDropdown.style.display = 'none';
+                        input.removeAttribute('aria-expanded');
+                    }
+                } else {
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        });
+    });
+
+    calculateTotal();
+    saveCurrentViewState();
+}, true); // <-- ОБЯЗАТЕЛЬНО capture=true
 
 
 // --- Функции для работы с localStorage ---
@@ -1547,99 +1558,89 @@ async function initializeApp() {
 
     // --- НОВОЕ: Делегированный обработчик события PASTE для всей таблицы ---
     // Привязываем один обработчик paste к tableBody
-    tableBody.addEventListener('paste', async (event) => {
-        const targetInput = event.target;
-tableBody.addEventListener('input', handleInput);
-tableBody.addEventListener('keydown', handleKeydown); // Для Enter на десктопе
-tableBody.addEventListener('focusout', handleFocusout); // Для потери фокуса (предложения, сохранение)
-tableBody.addEventListener('change', handleChange); // *** ДОБАВЬТЕ ЭТУ СТРОКУ ***
-// --- Конец блока привязки обработчиков ---
+tableBody.addEventListener('paste', async (event) => {
+    const targetInput = event.target;
 
+    // Check if the paste target is a 'name-input' or 'qty-input'
+    if (targetInput.tagName === 'INPUT' && (targetInput.classList.contains('name-input') || targetInput.classList.contains('qty-input'))) {
+        event.preventDefault(); // Prevent default paste behavior
 
-// --- НОВАЯ Функция обработки события 'change' ---
-function handleChange(event) {
-    const target = event.target;
-    // Проверяем, что событие произошло на поле ввода внутри ячейки таблицы
-     if (target.tagName === 'INPUT' && target.closest('td') && target.closest('tbody')) {
-         // Вызываем функцию перемещения фокуса
-         // Это сработает при фиксации значения (например, Enter или "Готово" на мобильных)
-         moveFocusToNextCell(target);
-     }
-}
-        // Проверяем, является ли целью вставки поле Наименование или Количество
-        if (targetInput.classList.contains('name-input') || targetInput.classList.contains('qty-input')) {
-            event.preventDefault(); // Отменяем стандартную вставку
+        const pasteData = event.clipboardData.getData('text');
 
-            const pasteData = event.clipboardData.getData('text');
-            const lines = pasteData.split(/\r?\n/).filter(line => line.trim() !== '');
+        // For debugging mobile clipboard content (RECOMMENDED during testing)
+        console.log("Mobile Paste - Raw Data:", pasteData);
+        console.log("Mobile Paste - JSON.stringified Data:", JSON.stringify(pasteData));
 
-            if (lines.length === 0) {
-                console.log('No valid lines to paste.');
-                return;
-            }
+        // Use a more robust method to split lines, handling various newline chars
+        // and filtering out lines that are empty after trimming.
+        const lines = pasteData.split(/[\r\n]+/).filter(line => line.trim() !== '');
 
-            let currentRow = targetInput.closest('tr'); // Начинаем с строки, куда вставили
-            console.log(`Paste detected on input in row: ${currentRow.rowIndex}. Processing ${lines.length} lines.`);
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i]; // Не тримим здесь для qty, т.к. sanitizeQtyInput сам это делает
-                 const trimmedLine = line.trim(); // Тримим для полей имени
-
-                let currentTargetInput;
-
-                if (i === 0) {
-                    // Для первой строки - используем текущее поле
-                    currentTargetInput = targetInput;
-                } else {
-                    // Для последующих строк - ищем или создаем следующую строку
-                    let nextRow = currentRow.nextElementSibling;
-                    if (!nextRow) {
-                        console.log('Next row not found during paste. Adding a new row.');
-                        // Добавляем новую строку без фокуса, она будет в конце tableBody
-                        // addRow() уже привязывает НЕ-PASTE слушатели к элементам новой строки
-                        addRow(false);
-                        nextRow = tableBody.lastElementChild; // Получаем только что добавленную строку
-                        console.log('New row added during paste:', nextRow);
-                    }
-                    currentRow = nextRow; // Переходим к следующей строке
-                    // Находим целевое поле ввода (Наименование или Количество) в следующей строке
-                    currentTargetInput = currentRow ? currentRow.querySelector(targetInput.classList.contains('name-input') ? '.name-input' : '.qty-input') : null;
-                }
-
-                if (currentTargetInput) {
-                     // Вставляем значение в поле и вызываем соответствующую функцию обновления
-                    if (targetInput.classList.contains('name-input')) {
-                        currentTargetInput.value = trimmedLine; // Для имени используем тримированное значение
-                         console.log(`Pasted Name "${trimmedLine}" into row ${currentRow.rowIndex} name input.`);
-                        // When pasting, the value *is* changing, so we want the default onNameChange behavior
-                        onNameChange(currentRow, ''); // Pass empty previousValue to force valueChanged = true
-                        console.log(`Called onNameChange for row ${currentRow.rowIndex} after name paste.`);
-                    } else if (targetInput.classList.contains('qty-input')) {
-                         // Для количества, очищаем и форматируем значение
-                         const sanitizedValue = sanitizeQtyInput({ value: line }); // Используем sanitize на исходной строке
-                         const numericValue = parseFormattedNumber(sanitizedValue); // Парсим число
-                         // Устанавливаем отформатированное значение в поле
-                         currentTargetInput.value = numericValue > 0 ? formatNumberDisplay(numericValue) : (sanitizedValue === '0.' ? '0.' : ''); // Сохраняем "0." если нужно
-                         console.log(`Pasted Qty "${currentTargetInput.value}" (parsed as ${numericValue}) into row ${currentRow.rowIndex} qty input.`);
-                         onQtyChange(currentRow);
-                         console.log(`Called onQtyChange for row ${currentRow.rowIndex} after qty paste.`);
-                    }
-
-                } else {
-                    console.warn(`Target input not found for line "${line}" in row ${currentRow ? currentRow.rowIndex : 'N/A'}.`);
-                    console.warn(`Skipping line "${line}" as target input was not found.`);
-                }
-            }
-
-            // После обработки всех строк, пересчитываем итог и сохраняем состояние
-            recalcTotal();
-            console.log('Recalculated total after paste.');
-            saveAppStateToLocalStorage();
-            console.log('App state saved after paste.');
+        if (lines.length === 0) {
+            console.log('No valid lines to paste.');
+            return;
         }
-    });
-    console.log('Delegated paste listener added to tableBody.');
-    // --- КОНЕЦ НОВОГО ДЕЛЕГИРОВАННОГО ОБРАБОТЧИКА ---
+
+        let currentRow = targetInput.closest('tr');
+        console.log(`Paste detected on input in row ${currentRow ? currentRow.rowIndex : 'unknown'}. Processing ${lines.length} lines.`);
+
+        const isNameTargetInitial = targetInput.classList.contains('name-input');
+        const isQtyTargetInitial = targetInput.classList.contains('qty-input');
+
+        for (let i = 0; i < lines.length; i++) {
+            const lineContent = lines[i]; // Use the untrimmed line for quantity, trim for name.
+            let currentCellInput;
+
+            if (i === 0) {
+                // First line goes into the initially targeted input field
+                currentCellInput = targetInput;
+            } else {
+                // For subsequent lines, add a new row
+                addRow(false); // Adds a new row to the table
+                currentRow = tableBody.lastElementChild; // Get the newly added row
+                if (!currentRow) {
+                    console.warn('Failed to add or find new row for pasting.');
+                    continue; // Skip if row creation failed
+                }
+
+                // Find the corresponding input field in the new row based on the *initial* target type
+                if (isNameTargetInitial) {
+                    currentCellInput = currentRow.querySelector('.name-input');
+                } else if (isQtyTargetInitial) {
+                    currentCellInput = currentRow.querySelector('.qty-input');
+                }
+            }
+
+            if (currentCellInput) {
+                if (currentCellInput.classList.contains('name-input')) {
+                    currentCellInput.value = lineContent.trim(); // Trim for name input
+                    console.log(`Pasted Name "${lineContent.trim()}" into row ${currentRow.rowIndex} name input.`);
+                    onNameChange(currentRow, ''); // Force update, assuming value changed
+                } else if (currentCellInput.classList.contains('qty-input')) {
+                    // For quantity, set the raw value first, then sanitize and format
+                    currentCellInput.value = lineContent; // Use untrimmed lineContent
+                    const sanitizedValue = sanitizeQtyInput(currentCellInput); // sanitizeQtyInput expects the input element
+                    const numericValue = parseFormattedNumber(sanitizedValue);
+                    currentCellInput.value = numericValue > 0 ? formatNumberDisplay(numericValue) : (sanitizedValue === '0.' ? '0.' : '');
+                    console.log(`Pasted Qty "${currentCellInput.value}" (parsed as ${numericValue}) into row ${currentRow.rowIndex} qty input.`);
+                    onQtyChange(currentRow);
+                }
+                // Dispatch an input event to trigger other potential listeners (e.g., for suggestions)
+                currentCellInput.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                console.warn(`Target input not found for line "${lineContent}" in row ${currentRow ? currentRow.rowIndex : 'N/A'}.`);
+            }
+        }
+
+        // After processing all lines, recalculate total and save state
+        recalcTotal();
+        console.log('Recalculated total after paste.');
+        saveAppStateToLocalStorage();
+        console.log('App state saved after paste.');
+    }
+});
+console.log('Delegated paste listener added to tableBody.');
+// --- END OF CORRECTED PASTE EVENT LISTENER ---
+
 
 
     // --- Загрузка данных из localStorage ---
@@ -1746,70 +1747,3 @@ window.addEventListener('beforeunload', () => {
     saveAppStateToLocalStorage();
 });
 // --- Конец блока автосохранения ---
-async function pasteFromClipboardManually() {
-    try {
-        const targetInput = document.activeElement;
-
-        if (!(targetInput && targetInput.tagName === 'INPUT' && tableBody.contains(targetInput))) {
-            alert("Сначала нажмите в нужное поле ввода.");
-            return;
-        }
-
-        const selectionStart = targetInput.selectionStart;
-        const selectionEnd = targetInput.selectionEnd;
-
-        const text = await navigator.clipboard.readText();
-        if (!text) {
-            alert("Буфер обмена пуст.");
-            return;
-        }
-
-        // Возвращаем фокус, т.к. иногда теряется на мобилках
-        setTimeout(() => {
-            targetInput.focus();
-            if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
-                targetInput.setSelectionRange(selectionStart, selectionEnd);
-            }
-
-            const fakePasteEvent = new ClipboardEvent('paste', {
-                clipboardData: new DataTransfer(),
-                bubbles: true
-            });
-            fakePasteEvent.clipboardData.setData('text/plain', text);
-            targetInput.dispatchEvent(fakePasteEvent);
-        }, 0);
-    } catch (err) {
-        console.error("Ошибка при доступе к буферу обмена:", err);
-        alert("Не удалось получить доступ к буферу обмена.");
-    }
-}
-
-function openManualPaste() {
-    const area = document.getElementById('manual-paste-area');
-    area.style.display = 'block';
-    area.focus();
-
-    area.onblur = () => {
-        const text = area.value.trim();
-        if (text) {
-            simulatePasteFromText(text);
-        }
-        area.style.display = 'none';
-        area.value = '';
-    };
-}
-
-function simulatePasteFromText(text) {
-    const activeInput = document.activeElement;
-    if (activeInput.tagName === 'INPUT' && tableBody.contains(activeInput)) {
-        const fakeEvent = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-            bubbles: true
-        });
-        fakeEvent.clipboardData.setData('text/plain', text);
-        activeInput.dispatchEvent(fakeEvent);
-    } else {
-        alert("Сначала выберите поле для вставки.");
-    }
-}
-
