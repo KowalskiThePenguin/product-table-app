@@ -2560,3 +2560,34 @@ button#snapshot-table {
   }
 
 }
+button,
+.fab, /* Для вашей Floating Action Button */
+.delete-btn, /* Для кнопок удаления */
+#menu-toggle, /* Для кнопки меню */
+#close-menu, /* Для кнопки закрытия меню */
+#add-view-btn, /* Для кнопки добавления вида */
+.view-item button, /* Для кнопок внутри элементов списка видов */
+.view-item .view-name, /* Для названия вида, чтобы его нельзя было выделить */
+input[type="text"], /* Для полей ввода, чтобы предотвратить выделение текста внутри */
+td, th, /* Для ячеек таблицы, чтобы текст не выделялся */
+body /* Можно применить к body, чтобы охватить все */
+{
+    -webkit-tap-highlight-color: transparent; /* Для WebKit-браузеров (Safari, Chrome на iOS/Android) */
+    -webkit-touch-callout: none; /* Для iOS: предотвращает всплывающее меню при долгом нажатии на ссылки/номера телефонов */
+    -webkit-user-select: none;   /* Для WebKit: предотвращает выделение текста */
+    -moz-user-select: none;      /* Для Firefox: предотвращает выделение текста */
+    -ms-user-select: none;       /* Для Edge/IE: предотвращает выделение текста */
+    user-select: none;           /* Стандартное свойство: предотвращает выделение текста */
+    -webkit-user-drag: none;     /* Для WebKit: предотвращает перетаскивание элементов */
+}
+
+/* Переопределяем user-select для input[type="text"] и textarea,
+   чтобы разрешить выделение и копирование текста внутри них,
+   но предотвратить выделение самой кнопки/элемента вокруг */
+input[type="text"],
+textarea {
+    -webkit-user-select: text;   /* Разрешить выделение текста внутри input/textarea */
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
