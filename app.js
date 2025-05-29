@@ -689,66 +689,6 @@ function captureTableSnapshot() {
             tableBody.style.maxHeight = originalTableBodyMaxHeight;
         });
     }, 50); // Small delay
-}() {
-    const elementToCapture = document.getElementById('main-content');
-    // Находим кнопки действий, чтобы скрыть их на снимке
-    const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
-
-    if (!elementToCapture) {
-        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
-        alert('Не удалось найти контейнер для создания снимка.');
-        return;
-    }
-
-    console.log('Попытка создать снимок контейнера...');
-
-    // Временно скрываем кнопки действий
-    if (actionButtonsElement) {
-        actionButtonsElement.style.display = 'none';
-    }
-
-    // Временно скрываем колонку "Удалить" в шапке, теле и подвале
-    const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
-    const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
-    const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
-
-    actionHeaders.forEach(th => th.style.display = 'none');
-    actionCells.forEach(td => td.style.display = 'none');
-    if (footerActionCell) footerActionCell.style.display = 'none';
-
-    // Используем html2canvas для создания снимка
-    html2canvas(elementToCapture, {
-        scale: 2, // Увеличиваем масштаб для лучшего качества
-        logging: true, // Включаем логирование html2canvas
-        useCORS: true // Разрешаем использование CORS для изображений (если есть)
-    }).then(canvas => {
-        console.log('Снимок успешно создан на Canvas.');
-        const dataUrl = canvas.toDataURL('image/png'); // Преобразуем canvas в формат PNG
-        const link = document.createElement('a'); // Создаем временную ссылку
-        link.href = dataUrl; // Устанавливаем данные снимка как href ссылки
-
-        // Имя файла берем из viewMetadata и очищаем от недопустимых символов, добавляем суффикс
-        const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
-        const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
-
-        link.setAttribute('download', filename); // Устанавливаем имя файла для скачивания
-        document.body.appendChild(link); // Добавляем ссылку в DOM
-        link.click(); // Имитируем клик для скачивания
-        document.body.removeChild(link); // Удаляем ссылку
-        console.log('Снимок захвачен, инициировано скачивание.');
-
-    }).catch(error => {
-        console.error('Ошибка при создании снимка:', error);
-        alert('Произошла ошибка при создании снимка.');
-    }).finally(() => {
-        // Восстанавливаем скрытые элементы после создания снимка
-        if (actionButtonsElement) {
-             actionButtonsElement.style.display = '';
-        }
-        actionHeaders.forEach(th => th.style.display = '');
-        actionCells.forEach(td => td.style.display = '');
-        if (footerActionCell) footerActionCell.style.display = '';
-    });
 }
 
 
