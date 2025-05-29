@@ -382,7 +382,10 @@ button#snapshot-table:active {
 }
 
 /* --- СТИЛИ ДЛЯ ПЕЧАТИ --- */
-
+body.hide-for-screenshot .print-header-text,
+body.hide-for-screenshot .print-header-image {
+    display: none !important; /* Убедимся, что они полностью скрыты */
+}
 
     .print-header-text {
         display: flex !important; /* Убедимся, что flexbox активен */
