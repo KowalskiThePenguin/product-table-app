@@ -552,17 +552,13 @@ function captureTableSnapshot() {
     const sideMenu = document.getElementById('side-menu');
     const networkStatus = document.getElementById('network-status');
 
-    // Находим элементы, связанные с названием компании и логотипом
-    // !!! ВАЖНО: Убедитесь, что эти селекторы ТОЧНО соответствуют вашей HTML-структуре. !!!
-    // Если .print-header-text находится не в #main-content, а, например, в body, то нужно искать от body.
-    const printHeaderTextElement = document.querySelector('.print-header-text'); // Может быть не в elementToCapture
-    const printHeaderImageDiv = document.querySelector('.print-header-image'); // Может быть не в elementToCapture
-
-    // Отладочные логи: Проверяем, найдены ли элементы
-    console.log('Найден printHeaderTextElement:', printHeaderTextElement);
-    console.log('Найден printHeaderImageDiv:', printHeaderImageDiv);
+    // Находим элементы, которые нужно скрыть (если они не скрываются классом)
+    // Эти переменные нужны в основном для сохранения оригинальных стилей
+    const printHeaderTextElement = document.querySelector('.print-header-text');
+    const printHeaderImageDiv = document.querySelector('.print-header-image');
 
 
+    // Сохраняем исходные встроенные стили
     const originalContainerTransform = elementToCapture.style.transform;
     const originalContainerWidth = elementToCapture.style.width;
     const originalContainerOverflowX = elementToCapture.style.overflowX;
@@ -572,37 +568,29 @@ function captureTableSnapshot() {
     const originalProductTableMaxWidth = productTableElement ? productTableElement.style.maxWidth : '';
     const originalProductTableTableLayout = productTableElement ? productTableElement.style.tableLayout : '';
 
+    // Сохраняем display для элементов UI
     const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
     const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
     const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
     const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
 
-    // Сохраняем исходные display стили для элементов названия компании и логотипа
-    const originalPrintHeaderTextDisplay = printHeaderTextElement ? printHeaderTextElement.style.display : '';
-    const originalPrintHeaderImageDisplay = printHeaderImageDiv ? printHeaderImageDiv.style.display : '';
+    // --- Убедимся, что print-header-text и print-header-image не имеют display: none; в своих style атрибутах,
+    // --- если они были скрыты ранее, чтобы класс мог их переопределить.
+    // --- Мы будем использовать класс для скрытия!
 
+    // Временно переопределяем стили для основного захватываемого элемента
     elementToCapture.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; overflow-x: visible !important; padding: 20px !important;';
     if (productTableElement) {
         productTableElement.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; table-layout: auto !important;';
     }
 
+    // Временно скрываем глобальные элементы UI
     if (appHeader) appHeader.style.display = 'none';
     if (appFooter) appFooter.style.display = 'none';
     if (sideMenu) sideMenu.style.display = 'none';
     if (networkStatus) networkStatus.style.display = 'none';
 
-    // *** Усиленное скрытие: Устанавливаем display: none !important; ***
-    // Это должно переопределить почти любое другое CSS-правило.
-    if (printHeaderTextElement) {
-        printHeaderTextElement.style.cssText += 'display: none !important;';
-        console.log('printHeaderTextElement.style.display после скрытия:', printHeaderTextElement.style.display);
-    }
-    if (printHeaderImageDiv) {
-        printHeaderImageDiv.style.cssText += 'display: none !important;';
-        console.log('printHeaderImageDiv.style.display после скрытия:', printHeaderImageDiv.style.display);
-    }
-
-
+    // Временно скрываем столбец "Удалить"
     const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
     const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
     const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
@@ -611,10 +599,15 @@ function captureTableSnapshot() {
     actionCells.forEach(td => td.style.display = 'none');
     if (footerActionCell) footerActionCell.style.display = 'none';
 
+    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем класс к <body> для скрытия элементов ---
+    document.body.classList.add('hide-for-screenshot');
+    console.log('Добавлен класс hide-for-screenshot к body.');
+
+
     const captureWidth = Math.max(elementToCapture.scrollWidth, productTableElement ? productTableElement.scrollWidth : 0);
     const captureHeight = elementToCapture.scrollHeight;
 
-    // Добавляем небольшую задержку, чтобы DOM гарантированно обновился перед html2canvas
+    // Добавляем небольшую задержку, чтобы DOM гарантированно обновился и CSS применился
     setTimeout(() => {
         html2canvas(elementToCapture, {
             scale: 2,
@@ -622,7 +615,9 @@ function captureTableSnapshot() {
             useCORS: true,
             width: captureWidth,
             height: captureHeight,
-            scrollY: -window.scrollY
+            scrollY: -window.scrollY,
+            // Если проблема с рендерингом стилей, попробуйте forceInliner: true, но это может быть медленнее
+            // forceInliner: true,
         }).then(canvas => {
             console.log('Снимок успешно создан на Canvas.');
             const dataUrl = canvas.toDataURL('image/png');
@@ -642,6 +637,10 @@ function captureTableSnapshot() {
             console.error('Ошибка при создании снимка:', error);
             alert('Произошла ошибка при создании снимка.');
         }).finally(() => {
+            // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Удаляем класс скрытия из <body> ---
+            document.body.classList.remove('hide-for-screenshot');
+            console.log('Удален класс hide-for-screenshot из body.');
+
             // Восстанавливаем исходные встроенные стили
             elementToCapture.style.transform = originalContainerTransform;
             elementToCapture.style.width = originalContainerWidth;
@@ -655,32 +654,18 @@ function captureTableSnapshot() {
                 productTableElement.style.tableLayout = originalProductTableTableLayout;
             }
 
+            // Восстанавливаем display для скрытых элементов UI
             if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
             if (appFooter) appFooter.style.display = originalAppFooterDisplay;
             if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
             if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
 
-            // *** Восстанавливаем display стили для элементов названия компании и логотипа ***
-            // Используем .style.removeProperty('display') если 'display: none !important;' был добавлен через cssText
-            if (printHeaderTextElement) {
-                printHeaderTextElement.style.removeProperty('display');
-                // Если originalPrintHeaderTextDisplay был пустой строкой, то просто убираем свойство
-                if (originalPrintHeaderTextDisplay !== '') {
-                    printHeaderTextElement.style.display = originalPrintHeaderTextDisplay;
-                }
-            }
-            if (printHeaderImageDiv) {
-                printHeaderImageDiv.style.removeProperty('display');
-                if (originalPrintHeaderImageDisplay !== '') {
-                    printHeaderImageDiv.style.display = originalPrintHeaderImageDisplay;
-                }
-            }
-
+            // Восстанавливаем display для столбцов "Удалить"
             actionHeaders.forEach(th => th.style.display = '');
             actionCells.forEach(td => td.style.display = '');
             if (footerActionCell) footerActionCell.style.display = '';
         });
-    }, 50); // Небольшая задержка в 50 мс
+    }, 100); // Увеличил задержку до 100 мс для надежности
 }
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
