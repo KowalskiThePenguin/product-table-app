@@ -537,18 +537,21 @@ function printTable() {
 
 function captureTableSnapshot() {
     const elementToCapture = document.getElementById('main-content');
-    const productTable = document.getElementById('product-table');
+    const productTable = document.getElementById('product-table'); // Get the table itself
     const tableBody = productTable.querySelector('tbody');
+    const tableFooter = productTable.querySelector('tfoot');
 
     // Select elements to temporarily hide
-    const actionButtonsElement = document.querySelector('.action-buttons');
-    const fabButton = document.getElementById('add-row');
+    const appHeader = document.getElementById('app-header'); // Assuming header might contain action buttons
+    const appFooter = document.getElementById('app-footer'); // Assuming footer contains FAB
     const networkStatusIndicator = document.getElementById('network-status');
+    const menuToggleBtn = document.getElementById('menu-toggle');
+    const sideMenu = document.getElementById('side-menu');
     const deleteButtons = tableBody.querySelectorAll('.delete-btn');
     const suggestionsDropdowns = tableBody.querySelectorAll('.suggestions-dropdown'); // Select all dropdowns
 
-    if (!elementToCapture || !productTable) {
-        console.error('Ошибка: Не найдены необходимые элементы для создания снимка (main-content или product-table).');
+    if (!elementToCapture) {
+        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
         alert('Не удалось найти контейнер для создания снимка.');
         return;
     }
@@ -557,94 +560,120 @@ function captureTableSnapshot() {
 
     // Store original styles to restore them later
     const originalDisplay = {};
+    const originalTransform = {}; // To store original transforms
+    const originalWidth = {}; // To store original widths if we override them
+    const originalHeight = {}; // To store original heights if we override them
+
+    // Store original tableBody styles
     const originalTableBodyOverflow = tableBody.style.overflow;
     const originalTableBodyHeight = tableBody.style.height;
     const originalTableBodyMaxHeight = tableBody.style.maxHeight;
 
-    // Store original styles for main-content and product-table that might limit size on small screens
-    const originalMainContentWidth = elementToCapture.style.width;
-    const originalMainContentMaxWidth = elementToCapture.style.maxWidth;
-    const originalMainContentOverflowX = elementToCapture.style.overflowX;
-    const originalProductTableWidth = productTable.style.width;
-    const originalProductTableMinWidth = productTable.style.minWidth;
-    const originalProductTableTableLayout = productTable.style.tableLayout;
-
-
     // 1. Temporarily hide elements not needed in the screenshot
-    if (actionButtonsElement) {
-        originalDisplay.actionButtons = actionButtonsElement.style.display;
-        actionButtonsElement.style.display = 'none';
+    if (appHeader) {
+        originalDisplay.appHeader = appHeader.style.display;
+        appHeader.style.display = 'none';
     }
-    if (fabButton) {
-        originalDisplay.fabButton = fabButton.style.display;
-        fabButton.style.display = 'none';
+    if (appFooter) {
+        originalDisplay.appFooter = appFooter.style.display;
+        appFooter.style.display = 'none';
     }
     if (networkStatusIndicator) {
         originalDisplay.networkStatusIndicator = networkStatusIndicator.style.display;
         networkStatusIndicator.style.display = 'none';
     }
+    if (menuToggleBtn) {
+        originalDisplay.menuToggleBtn = menuToggleBtn.style.display;
+        menuToggleBtn.style.display = 'none';
+    }
+    if (sideMenu) {
+        originalDisplay.sideMenu = sideMenu.style.display;
+        sideMenu.style.display = 'none';
+    }
+
 
     // Hide delete buttons
-    deleteButtons.forEach(btn => {
-        originalDisplay[btn.id || `delete-btn-${Math.random()}`] = btn.style.display; // Use a unique key
+    deleteButtons.forEach((btn, index) => {
+        const key = `delete-btn-${index}`;
+        originalDisplay[key] = btn.style.display;
         btn.style.display = 'none';
     });
 
     // Hide suggestions dropdowns
-    suggestionsDropdowns.forEach(dropdown => {
-        originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`] = dropdown.style.display;
+    suggestionsDropdowns.forEach((dropdown, index) => {
+        const key = `suggestions-dropdown-${index}`;
+        originalDisplay[key] = dropdown.style.display;
         dropdown.style.display = 'none';
     });
 
+    // Temporarily hide the last column (Delete column) in header, body, and footer
+    const headerLastCell = document.querySelector('#product-table thead th:last-child');
+    const bodyLastCells = document.querySelectorAll('#product-table tbody td:last-child');
+    const footerLastCell = document.querySelector('#product-table tfoot td:last-child');
 
-    // Temporarily hide the last column (Delete column) in header and body
-    const headerCells = document.querySelectorAll('#product-table thead th:last-child');
-    const bodyCells = document.querySelectorAll('#product-table tbody td:last-child');
-    const footerCells = document.querySelectorAll('#product-table tfoot td:last-child');
-
-    originalDisplay.headerLastCell = headerCells.length > 0 ? headerCells[0].style.display : null;
+    if (headerLastCell) {
+        originalDisplay.headerLastCell = headerLastCell.style.display;
+        headerLastCell.style.display = 'none';
+    }
     originalDisplay.bodyLastCells = [];
-    originalDisplay.footerLastCell = footerCells.length > 0 ? footerCells[0].style.display : null;
-
-    headerCells.forEach(cell => cell.style.display = 'none');
-    bodyCells.forEach(cell => {
+    bodyLastCells.forEach(cell => {
         originalDisplay.bodyLastCells.push({ element: cell, display: cell.style.display });
         cell.style.display = 'none';
     });
-    footerCells.forEach(cell => cell.style.display = 'none');
+    if (footerLastCell) {
+        originalDisplay.footerLastCell = footerLastCell.style.display;
+        footerLastCell.style.display = 'none';
+    }
 
 
-    // 2. Adjust tableBody and its container styles to ensure all rows and columns are visible
+    // 2. IMPORTANT: Remove scaling from the table or its container
+    // We need to check the computed style to see if transform: scale is applied
+    const computedStyle = window.getComputedStyle(elementToCapture);
+    const transformValue = computedStyle.transform;
+
+    if (transformValue && transformValue !== 'none') {
+        console.log('Обнаружено преобразование на контейнере:', transformValue);
+        originalTransform.elementToCapture = elementToCapture.style.transform;
+        elementToCapture.style.transform = 'none'; // Temporarily remove transform
+    }
+
+    // Also check for scaling on the table itself
+    const tableComputedStyle = window.getComputedStyle(productTable);
+    const tableTransformValue = tableComputedStyle.transform;
+
+    if (tableTransformValue && tableTransformValue !== 'none') {
+        console.log('Обнаружено преобразование на таблице:', tableTransformValue);
+        originalTransform.productTable = productTable.style.transform;
+        productTable.style.transform = 'none'; // Temporarily remove transform
+    }
+
+    // Temporarily remove overflow and set height to auto for capturing full content
     tableBody.style.overflow = 'visible';
     tableBody.style.height = 'auto';
     tableBody.style.maxHeight = 'none';
 
-    // Temporarily remove width constraints from main-content and product-table
-    elementToCapture.style.width = 'fit-content'; // Or a very large fixed width if fit-content isn't enough
-    elementToCapture.style.maxWidth = 'none';
-    elementToCapture.style.overflowX = 'visible'; // Ensure horizontal scroll is visible
-
-    productTable.style.width = 'max-content'; // Or a very large fixed width
-    productTable.style.minWidth = 'auto'; // Remove minimum width constraint if any
-    productTable.style.tableLayout = 'auto'; // Let browser determine column widths naturally
-
-    // To ensure inputs show their actual values
+    // To ensure inputs show their actual values, not their initial HTML 'value' attribute
     tableBody.querySelectorAll('input').forEach(input => {
-        input.blur();
+        input.blur(); // Remove focus to ensure value is committed by browser
     });
 
-    // Use a slight delay to ensure DOM updates are rendered
+    // Small delay to ensure DOM updates are rendered and transforms are removed
     setTimeout(() => {
-        // Calculate the effective width and height of the productTable
-        // We'll capture the productTable directly, not main-content, for precise table capture.
-        // This makes sure we get the full rendered table, unconstrained.
-        const captureWidth = productTable.scrollWidth;
-        const captureHeight = productTable.scrollHeight;
+        // Calculate the effective width and height of the table
+        // We're capturing `elementToCapture` which contains the table.
+        // `scrollWidth` and `scrollHeight` should give us the full content dimensions.
+        const captureWidth = elementToCapture.scrollWidth;
+        const captureHeight = elementToCapture.scrollHeight;
 
-        html2canvas(productTable, { // Capture productTable directly
+        html2canvas(elementToCapture, {
             width: captureWidth,
             height: captureHeight,
-            // These are generally good for capturing content that might be outside viewport
+            // To ensure the screenshot dimensions are not affected by device pixel ratio,
+            // you might want to consider `scale: 1` if you truly want 1:1 pixels.
+            // However, typically `scale: window.devicePixelRatio` (default) is desired
+            // for sharper images on high-DPI screens.
+            // If you want to force original non-scaled render, set scale: 1
+            // scale: 1, // Uncomment this if you consistently get blurry/too large screenshots
             scrollX: -window.scrollX,
             scrollY: -window.scrollY,
             windowWidth: document.documentElement.offsetWidth,
@@ -667,46 +696,60 @@ function captureTableSnapshot() {
             console.error('Ошибка при создании снимка:', error);
             alert('Произошла ошибка при создании снимка таблицы.');
         }).finally(() => {
-            // Restore original styles for UI elements
-            if (actionButtonsElement && originalDisplay.actionButtons !== undefined) {
-                actionButtonsElement.style.display = originalDisplay.actionButtons;
+            // Restore original styles
+            if (appHeader && originalDisplay.appHeader !== undefined) {
+                appHeader.style.display = originalDisplay.appHeader;
             }
-            if (fabButton && originalDisplay.fabButton !== undefined) {
-                fabButton.style.display = originalDisplay.fabButton;
+            if (appFooter && originalDisplay.appFooter !== undefined) {
+                appFooter.style.display = originalDisplay.appFooter;
             }
             if (networkStatusIndicator && originalDisplay.networkStatusIndicator !== undefined) {
                 networkStatusIndicator.style.display = originalDisplay.networkStatusIndicator;
             }
-            deleteButtons.forEach(btn => {
-                if (originalDisplay[btn.id || `delete-btn-${Math.random()}`] !== undefined) {
-                    btn.style.display = originalDisplay[btn.id || `delete-btn-${Math.random()}`];
+            if (menuToggleBtn && originalDisplay.menuToggleBtn !== undefined) {
+                menuToggleBtn.style.display = originalDisplay.menuToggleBtn;
+            }
+            if (sideMenu && originalDisplay.sideMenu !== undefined) {
+                sideMenu.style.display = originalDisplay.sideMenu;
+            }
+
+            deleteButtons.forEach((btn, index) => {
+                const key = `delete-btn-${index}`;
+                if (originalDisplay[key] !== undefined) {
+                    btn.style.display = originalDisplay[key];
                 }
             });
-            suggestionsDropdowns.forEach(dropdown => {
-                if (originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`] !== undefined) {
-                    dropdown.style.display = originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`];
+            suggestionsDropdowns.forEach((dropdown, index) => {
+                const key = `suggestions-dropdown-${index}`;
+                if (originalDisplay[key] !== undefined) {
+                    dropdown.style.display = originalDisplay[key];
                 }
             });
 
-            headerCells.forEach(cell => { if (originalDisplay.headerLastCell !== null) cell.style.display = originalDisplay.headerLastCell; });
+            if (headerLastCell && originalDisplay.headerLastCell !== undefined) {
+                headerLastCell.style.display = originalDisplay.headerLastCell;
+            }
             originalDisplay.bodyLastCells.forEach(item => { item.element.style.display = item.display; });
-            footerCells.forEach(cell => { if (originalDisplay.footerLastCell !== null) cell.style.display = originalDisplay.footerLastCell; });
+            if (footerLastCell && originalDisplay.footerLastCell !== undefined) {
+                footerLastCell.style.display = originalDisplay.footerLastCell;
+            }
 
-            // Restore tableBody and container styles
+            // Restore transforms
+            if (originalTransform.elementToCapture !== undefined) {
+                elementToCapture.style.transform = originalTransform.elementToCapture;
+            }
+            if (originalTransform.productTable !== undefined) {
+                productTable.style.transform = originalTransform.productTable;
+            }
+
+            // Restore tableBody styles
             tableBody.style.overflow = originalTableBodyOverflow;
             tableBody.style.height = originalTableBodyHeight;
             tableBody.style.maxHeight = originalTableBodyMaxHeight;
-
-            elementToCapture.style.width = originalMainContentWidth;
-            elementToCapture.style.maxWidth = originalMainContentMaxWidth;
-            elementToCapture.style.overflowX = originalMainContentOverflowX;
-
-            productTable.style.width = originalProductTableWidth;
-            productTable.style.minWidth = originalProductTableMinWidth;
-            productTable.style.tableLayout = originalProductTableTableLayout;
         });
-    }, 50);
+    }, 50); // Small delay
 }
+
 
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
