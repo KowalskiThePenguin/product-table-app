@@ -537,158 +537,66 @@ function printTable() {
 
 function captureTableSnapshot() {
     const elementToCapture = document.getElementById('main-content');
-    const productTable = document.getElementById('product-table');
-    const tableBody = productTable ? productTable.querySelector('tbody') : null;
+    // Находим кнопки действий, чтобы скрыть их на снимке
+    const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
 
-    // Элементы, которые нужно временно скрыть для чистого снимка
-    const elementsToHide = [
-        document.getElementById('app-header'),
-        document.getElementById('app-footer'),
-        document.getElementById('network-status'),
-        document.getElementById('menu-toggle'),
-        document.getElementById('side-menu'),
-        document.getElementById('add-row') // Если FAB кнопка вне app-footer
-    ];
-
-    if (!elementToCapture || !productTable || !tableBody) {
-        console.error('Ошибка: Не найдены необходимые элементы для создания снимка (main-content, product-table, tbody).');
+    if (!elementToCapture) {
+        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
         alert('Не удалось найти контейнер для создания снимка.');
         return;
     }
 
     console.log('Попытка создать снимок контейнера...');
 
-    // Объект для хранения оригинальных стилей
-    const originalStyles = {};
+    // Временно скрываем кнопки действий
+    if (actionButtonsElement) {
+        actionButtonsElement.style.display = 'none';
+    }
 
-    // Вспомогательная функция для сохранения и применения стилей
-    // Использует случайный ключ, если ID элемента нет
-    const storeAndApplyStyle = (element, prop, tempValue) => {
-        if (element) {
-            // Если свойство уже было сохранено для этого элемента,
-            // используем существующий ключ, чтобы не дублировать
-            const key = element.id ? `${element.id}-${prop}` : `${element.tagName}-${Array.from(element.parentNode.children).indexOf(element)}-${prop}`;
-            if (!originalStyles[key]) {
-                originalStyles[key] = { element: element, prop: prop, value: element.style[prop] };
-            }
-            element.style[prop] = tempValue;
+    // Временно скрываем колонку "Удалить" в шапке, теле и подвале
+    const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
+    const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
+    const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
+
+    actionHeaders.forEach(th => th.style.display = 'none');
+    actionCells.forEach(td => td.style.display = 'none');
+    if (footerActionCell) footerActionCell.style.display = 'none';
+
+    // Используем html2canvas для создания снимка
+    html2canvas(elementToCapture, {
+        scale: 2, // Увеличиваем масштаб для лучшего качества
+        logging: true, // Включаем логирование html2canvas
+        useCORS: true // Разрешаем использование CORS для изображений (если есть)
+    }).then(canvas => {
+        console.log('Снимок успешно создан на Canvas.');
+        const dataUrl = canvas.toDataURL('image/png'); // Преобразуем canvas в формат PNG
+        const link = document.createElement('a'); // Создаем временную ссылку
+        link.href = dataUrl; // Устанавливаем данные снимка как href ссылки
+
+        // Имя файла берем из viewMetadata и очищаем от недопустимых символов, добавляем суффикс
+        const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
+        const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
+
+        link.setAttribute('download', filename); // Устанавливаем имя файла для скачивания
+        document.body.appendChild(link); // Добавляем ссылку в DOM
+        link.click(); // Имитируем клик для скачивания
+        document.body.removeChild(link); // Удаляем ссылку
+        console.log('Снимок захвачен, инициировано скачивание.');
+
+    }).catch(error => {
+        console.error('Ошибка при создании снимка:', error);
+        alert('Произошла ошибка при создании снимка.');
+    }).finally(() => {
+        // Восстанавливаем скрытые элементы после создания снимка
+        if (actionButtonsElement) {
+             actionButtonsElement.style.display = '';
         }
-    };
-
-    // Вспомогательная функция для сохранения вычисленных стилей (например, transform)
-    const storeAndApplyComputedStyle = (element, prop, tempValue) => {
-        if (element) {
-            const computedVal = window.getComputedStyle(element)[prop];
-            const key = element.id ? `${element.id}-${prop}` : `${element.tagName}-${Array.from(element.parentNode.children).indexOf(element)}-${prop}`;
-            if (!originalStyles[key]) {
-                 originalStyles[key] = { element: element, prop: prop, value: computedVal };
-            }
-            element.style[prop] = tempValue;
-        }
-    };
-
-    // 1. Временно скрываем элементы, не нужные на скриншоте
-    elementsToHide.forEach(el => storeAndApplyStyle(el, 'display', 'none'));
-
-    // Скрываем кнопки удаления
-    const deleteButtons = tableBody.querySelectorAll('.delete-btn');
-    deleteButtons.forEach(btn => storeAndApplyStyle(btn, 'display', 'none'));
-
-    // Скрываем выпадающие списки автодополнения
-    const suggestionsDropdowns = document.querySelectorAll('.suggestions-dropdown'); // Select all dropdowns, even if they're not in tbody
-    suggestionsDropdowns.forEach(dropdown => storeAndApplyStyle(dropdown, 'display', 'none'));
-
-
-    // Временно скрываем последнюю колонку (удаление) в заголовке, теле и футере
-    const headerLastCell = document.querySelector('#product-table thead th:last-child');
-    const bodyLastCells = Array.from(document.querySelectorAll('#product-table tbody td:last-child'));
-    const footerLastCell = document.querySelector('#product-table tfoot td:last-child');
-
-    storeAndApplyStyle(headerLastCell, 'display', 'none');
-    bodyLastCells.forEach(cell => storeAndApplyStyle(cell, 'display', 'none'));
-    storeAndApplyStyle(footerLastCell, 'display', 'none');
-
-
-    // 2. Агрессивно обеспечиваем полную видимость содержимого и отсутствие масштабирования
-    // Убираем позиционирование, фиксированные размеры и ограничения overflow для main-content
-    storeAndApplyStyle(elementToCapture, 'position', 'static');
-    storeAndApplyStyle(elementToCapture, 'top', 'auto');
-    storeAndApplyStyle(elementToCapture, 'left', 'auto');
-    storeAndApplyStyle(elementToCapture, 'right', 'auto');
-    storeAndApplyStyle(elementToCapture, 'bottom', 'auto');
-    storeAndApplyStyle(elementToCapture, 'height', 'auto');
-    storeAndApplyStyle(elementToCapture, 'maxHeight', 'none');
-    storeAndApplyStyle(elementToCapture, 'overflow', 'visible'); // Убедимся, что контент не обрезается
-
-
-    // Убеждаемся, что таблица и ее тело занимают полный размер содержимого
-    storeAndApplyStyle(tableBody, 'overflow', 'visible');
-    storeAndApplyStyle(tableBody, 'height', 'auto');
-    storeAndApplyStyle(tableBody, 'maxHeight', 'none');
-
-    // Убираем любые трансформации (масштабирование) с элемента контейнера и таблицы
-    storeAndApplyComputedStyle(elementToCapture, 'transform', 'none');
-    storeAndApplyComputedStyle(productTable, 'transform', 'none');
-
-    // Для input-полей: убираем фокус, чтобы их текущие значения были "зафиксированы"
-    tableBody.querySelectorAll('input, select').forEach(input => input.blur());
-
-
-    // Небольшая задержка, чтобы DOM успел обновиться после изменения стилей
-    setTimeout(() => {
-        // Пересчитываем размеры *после* применения стилей
-        // Используем scrollWidth/scrollHeight для получения фактического размера содержимого
-        const captureWidth = elementToCapture.scrollWidth;
-        const captureHeight = elementToCapture.scrollHeight;
-
-        console.log(`Вычисленные размеры для захвата: ${captureWidth}x${captureHeight}`);
-
-        html2canvas(elementToCapture, {
-            width: captureWidth,
-            height: captureHeight,
-            // scale: 1, // Раскомментируйте, если изображение слишком маленькое/размытое на экранах с высоким DPI
-            // dpi: 300, // Раскомментируйте, если нужен скриншот более высокого разрешения для печати
-            scrollX: -window.scrollX, // Учитываем текущий горизонтальный скролл страницы
-            scrollY: -window.scrollY, // Учитываем текущий вертикальный скролл страницы
-            windowWidth: document.documentElement.offsetWidth, // Учитываем ширину окна
-            windowHeight: document.documentElement.offsetHeight, // Учитываем высоту окна
-            useCORS: true, // Важно, если у вас есть изображения/шрифты с других доменов
-            allowTaint: true, // Может помочь, если есть проблемы с "грязным" канвасом из-за изображений
-            ignoreElements: (element) => {
-                // Если какой-то элемент все равно появляется, можно добавить его сюда для игнорирования
-                // Например: return element.classList.contains('some-floating-button');
-                return false;
-            }
-        }).then(canvas => {
-            const imageDataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-
-            // Имя файла на основе текущего активного вида
-            const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
-            // Заменяем недопустимые символы на подчеркивания
-            const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}.png`;
-
-            link.download = filename;
-            link.href = imageDataUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log(`Снимок для вида '${viewName}' создан.`);
-        }).catch(error => {
-            console.error('Ошибка при создании снимка:', error);
-            alert('Произошла ошибка при создании снимка таблицы. Проверьте консоль для деталей.');
-        }).finally(() => {
-            // Восстанавливаем все оригинальные стили
-            for (const key in originalStyles) {
-                const { element, prop, value } = originalStyles[key];
-                if (element && value !== undefined) { // Проверяем, что элемент существует и значение не undefined
-                    element.style[prop] = value;
-                }
-            }
-            console.log('Стили восстановлены.');
-        });
-    }, 150); // Увеличена задержка до 150 мс для максимальной надежности
+        actionHeaders.forEach(th => th.style.display = '');
+        actionCells.forEach(td => td.style.display = '');
+        if (footerActionCell) footerActionCell.style.display = '';
+    });
 }
+
 
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
