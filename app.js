@@ -689,7 +689,7 @@ function captureTableSnapshot() {
             tableBody.style.maxHeight = originalTableBodyMaxHeight;
         });
     }, 50); // Small delay
-}
+}() {
     const elementToCapture = document.getElementById('main-content');
     // Находим кнопки действий, чтобы скрыть их на снимке
     const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
