@@ -537,6 +537,160 @@ function printTable() {
 
 function captureTableSnapshot() {
     const elementToCapture = document.getElementById('main-content');
+    const tableBody = document.getElementById('product-table').querySelector('tbody');
+    const tableFooter = document.getElementById('product-table').querySelector('tfoot');
+
+    // Select elements to temporarily hide
+    const actionButtonsElement = document.querySelector('.action-buttons');
+    const fabButton = document.getElementById('add-row');
+    const networkStatusIndicator = document.getElementById('network-status');
+    const deleteButtons = tableBody.querySelectorAll('.delete-btn');
+    const suggestionsDropdowns = tableBody.querySelectorAll('.suggestions-dropdown'); // Select all dropdowns
+
+    if (!elementToCapture) {
+        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
+        alert('Не удалось найти контейнер для создания снимка.');
+        return;
+    }
+
+    console.log('Попытка создать снимок контейнера...');
+
+    // Store original styles to restore them later
+    const originalDisplay = {};
+    const originalTableBodyOverflow = tableBody.style.overflow;
+    const originalTableBodyHeight = tableBody.style.height;
+    const originalTableBodyMaxHeight = tableBody.style.maxHeight;
+
+    // 1. Temporarily hide elements not needed in the screenshot
+    if (actionButtonsElement) {
+        originalDisplay.actionButtons = actionButtonsElement.style.display;
+        actionButtonsElement.style.display = 'none';
+    }
+    if (fabButton) {
+        originalDisplay.fabButton = fabButton.style.display;
+        fabButton.style.display = 'none';
+    }
+    if (networkStatusIndicator) {
+        originalDisplay.networkStatusIndicator = networkStatusIndicator.style.display;
+        networkStatusIndicator.style.display = 'none';
+    }
+
+    // Hide delete buttons
+    deleteButtons.forEach(btn => {
+        originalDisplay[btn.id || `delete-btn-${Math.random()}`] = btn.style.display; // Use a unique key
+        btn.style.display = 'none';
+    });
+
+    // Hide suggestions dropdowns
+    suggestionsDropdowns.forEach(dropdown => {
+        originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`] = dropdown.style.display;
+        dropdown.style.display = 'none';
+    });
+
+
+    // Temporarily hide the last column (Delete column) in header and body
+    const headerCells = document.querySelectorAll('#product-table thead th:last-child');
+    const bodyCells = document.querySelectorAll('#product-table tbody td:last-child');
+    const footerCells = document.querySelectorAll('#product-table tfoot td:last-child'); // Assuming total sum might be in the last column
+
+    originalDisplay.headerLastCell = headerCells.length > 0 ? headerCells[0].style.display : null;
+    originalDisplay.bodyLastCells = [];
+    originalDisplay.footerLastCell = footerCells.length > 0 ? footerCells[0].style.display : null;
+
+    headerCells.forEach(cell => cell.style.display = 'none');
+    bodyCells.forEach(cell => {
+        originalDisplay.bodyLastCells.push({ element: cell, display: cell.style.display });
+        cell.style.display = 'none';
+    });
+    footerCells.forEach(cell => cell.style.display = 'none');
+
+
+    // 2. Adjust tableBody styles to ensure all rows are visible
+    // Temporarily remove overflow and set height to auto for capturing full content
+    tableBody.style.overflow = 'visible';
+    tableBody.style.height = 'auto';
+    tableBody.style.maxHeight = 'none';
+
+    // To ensure inputs show their actual values, not their initial HTML 'value' attribute
+    // (This is usually handled by browser rendering, but good to ensure inputs are "committed")
+    tableBody.querySelectorAll('input').forEach(input => {
+        input.blur(); // Remove focus to ensure value is committed by browser
+    });
+
+    // Use a slight delay to ensure DOM updates are rendered
+    setTimeout(() => {
+        // Calculate the effective width and height of the table within main-content
+        // This is crucial for html2canvas to capture the full scrollable area
+        const table = document.getElementById('product-table');
+        const tableWidth = table.offsetWidth; // Actual rendered width
+        const tableHeight = table.offsetHeight; // Actual rendered height
+
+        // You might need to adjust this to include padding/margin of main-content if necessary
+        const containerWidth = elementToCapture.scrollWidth;
+        const containerHeight = elementToCapture.scrollHeight;
+
+
+        html2canvas(elementToCapture, {
+            // Use the calculated width and height to ensure full capture
+            width: Math.max(elementToCapture.offsetWidth, containerWidth),
+            height: Math.max(elementToCapture.offsetHeight, containerHeight),
+            scrollX: -window.scrollX, // Account for current horizontal scroll
+            scrollY: -window.scrollY, // Account for current vertical scroll
+            windowWidth: document.documentElement.offsetWidth, // Ensure window dimensions are considered
+            windowHeight: document.documentElement.offsetHeight,
+            useCORS: true // Important if you have external images/fonts
+        }).then(canvas => {
+            const imageDataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+
+            // Name the file based on the current view metadata
+            const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
+            const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}.png`;
+
+            link.download = filename;
+            link.href = imageDataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log(`Snapshot for view '${viewName}' created.`);
+        }).catch(error => {
+            console.error('Ошибка при создании снимка:', error);
+            alert('Произошла ошибка при создании снимка таблицы.');
+        }).finally(() => {
+            // Restore original styles
+            if (actionButtonsElement && originalDisplay.actionButtons !== undefined) {
+                actionButtonsElement.style.display = originalDisplay.actionButtons;
+            }
+            if (fabButton && originalDisplay.fabButton !== undefined) {
+                fabButton.style.display = originalDisplay.fabButton;
+            }
+            if (networkStatusIndicator && originalDisplay.networkStatusIndicator !== undefined) {
+                networkStatusIndicator.style.display = originalDisplay.networkStatusIndicator;
+            }
+            deleteButtons.forEach(btn => { // Iterate through original delete buttons if necessary
+                if (originalDisplay[btn.id || `delete-btn-${Math.random()}`] !== undefined) { // Check if we stored its original display
+                    btn.style.display = originalDisplay[btn.id || `delete-btn-${Math.random()}`];
+                }
+            });
+            suggestionsDropdowns.forEach(dropdown => {
+                if (originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`] !== undefined) {
+                    dropdown.style.display = originalDisplay[dropdown.id || `suggestions-dropdown-${Math.random()}`];
+                }
+            });
+
+
+            headerCells.forEach(cell => { if (originalDisplay.headerLastCell !== null) cell.style.display = originalDisplay.headerLastCell; });
+            originalDisplay.bodyLastCells.forEach(item => { item.element.style.display = item.display; });
+            footerCells.forEach(cell => { if (originalDisplay.footerLastCell !== null) cell.style.display = originalDisplay.footerLastCell; });
+
+            // Restore tableBody styles
+            tableBody.style.overflow = originalTableBodyOverflow;
+            tableBody.style.height = originalTableBodyHeight;
+            tableBody.style.maxHeight = originalTableBodyMaxHeight;
+        });
+    }, 50); // Small delay
+}
+    const elementToCapture = document.getElementById('main-content');
     // Находим кнопки действий, чтобы скрыть их на снимке
     const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
 
@@ -1516,9 +1670,10 @@ document.addEventListener('click', (e) => {
 async function initializeApp() {
     console.log('Initializing application...');
     // 1. Привязываем обработчики меню
-    menuToggleBtn.addEventListener('click', () => {
-        sideMenu.classList.contains('open') ? closeMenu() : openMenu();
-    });
+menuToggleBtn.addEventListener('click', () => {
+    sideMenu.classList.add('open'); // Opens the sidebar
+    document.body.classList.add('menu-open'); // Add class to body
+});
     closeMenuBtn.addEventListener('click', closeMenu);
     addViewBtn.addEventListener('click', addNewView); // Привязываем добавление нового вида
 
