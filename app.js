@@ -537,153 +537,135 @@ function printTable() {
 
 function captureTableSnapshot() {
     const elementToCapture = document.getElementById('main-content');
-    const productTable = document.getElementById('product-table'); // Get the table itself
-    const tableBody = productTable.querySelector('tbody');
-    const tableFooter = productTable.querySelector('tfoot');
+    const productTable = document.getElementById('product-table');
+    const tableBody = productTable ? productTable.querySelector('tbody') : null;
 
-    // Select elements to temporarily hide
-    const appHeader = document.getElementById('app-header'); // Assuming header might contain action buttons
-    const appFooter = document.getElementById('app-footer'); // Assuming footer contains FAB
-    const networkStatusIndicator = document.getElementById('network-status');
-    const menuToggleBtn = document.getElementById('menu-toggle');
-    const sideMenu = document.getElementById('side-menu');
-    const deleteButtons = tableBody.querySelectorAll('.delete-btn');
-    const suggestionsDropdowns = tableBody.querySelectorAll('.suggestions-dropdown'); // Select all dropdowns
+    // Элементы, которые нужно временно скрыть для чистого снимка
+    const elementsToHide = [
+        document.getElementById('app-header'),
+        document.getElementById('app-footer'),
+        document.getElementById('network-status'),
+        document.getElementById('menu-toggle'),
+        document.getElementById('side-menu'),
+        document.getElementById('add-row') // Если FAB кнопка вне app-footer
+    ];
 
-    if (!elementToCapture) {
-        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
+    if (!elementToCapture || !productTable || !tableBody) {
+        console.error('Ошибка: Не найдены необходимые элементы для создания снимка (main-content, product-table, tbody).');
         alert('Не удалось найти контейнер для создания снимка.');
         return;
     }
 
     console.log('Попытка создать снимок контейнера...');
 
-    // Store original styles to restore them later
-    const originalDisplay = {};
-    const originalTransform = {}; // To store original transforms
-    const originalWidth = {}; // To store original widths if we override them
-    const originalHeight = {}; // To store original heights if we override them
+    // Объект для хранения оригинальных стилей
+    const originalStyles = {};
 
-    // Store original tableBody styles
-    const originalTableBodyOverflow = tableBody.style.overflow;
-    const originalTableBodyHeight = tableBody.style.height;
-    const originalTableBodyMaxHeight = tableBody.style.maxHeight;
+    // Вспомогательная функция для сохранения и применения стилей
+    // Использует случайный ключ, если ID элемента нет
+    const storeAndApplyStyle = (element, prop, tempValue) => {
+        if (element) {
+            // Если свойство уже было сохранено для этого элемента,
+            // используем существующий ключ, чтобы не дублировать
+            const key = element.id ? `${element.id}-${prop}` : `${element.tagName}-${Array.from(element.parentNode.children).indexOf(element)}-${prop}`;
+            if (!originalStyles[key]) {
+                originalStyles[key] = { element: element, prop: prop, value: element.style[prop] };
+            }
+            element.style[prop] = tempValue;
+        }
+    };
 
-    // 1. Temporarily hide elements not needed in the screenshot
-    if (appHeader) {
-        originalDisplay.appHeader = appHeader.style.display;
-        appHeader.style.display = 'none';
-    }
-    if (appFooter) {
-        originalDisplay.appFooter = appFooter.style.display;
-        appFooter.style.display = 'none';
-    }
-    if (networkStatusIndicator) {
-        originalDisplay.networkStatusIndicator = networkStatusIndicator.style.display;
-        networkStatusIndicator.style.display = 'none';
-    }
-    if (menuToggleBtn) {
-        originalDisplay.menuToggleBtn = menuToggleBtn.style.display;
-        menuToggleBtn.style.display = 'none';
-    }
-    if (sideMenu) {
-        originalDisplay.sideMenu = sideMenu.style.display;
-        sideMenu.style.display = 'none';
-    }
+    // Вспомогательная функция для сохранения вычисленных стилей (например, transform)
+    const storeAndApplyComputedStyle = (element, prop, tempValue) => {
+        if (element) {
+            const computedVal = window.getComputedStyle(element)[prop];
+            const key = element.id ? `${element.id}-${prop}` : `${element.tagName}-${Array.from(element.parentNode.children).indexOf(element)}-${prop}`;
+            if (!originalStyles[key]) {
+                 originalStyles[key] = { element: element, prop: prop, value: computedVal };
+            }
+            element.style[prop] = tempValue;
+        }
+    };
+
+    // 1. Временно скрываем элементы, не нужные на скриншоте
+    elementsToHide.forEach(el => storeAndApplyStyle(el, 'display', 'none'));
+
+    // Скрываем кнопки удаления
+    const deleteButtons = tableBody.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => storeAndApplyStyle(btn, 'display', 'none'));
+
+    // Скрываем выпадающие списки автодополнения
+    const suggestionsDropdowns = document.querySelectorAll('.suggestions-dropdown'); // Select all dropdowns, even if they're not in tbody
+    suggestionsDropdowns.forEach(dropdown => storeAndApplyStyle(dropdown, 'display', 'none'));
 
 
-    // Hide delete buttons
-    deleteButtons.forEach((btn, index) => {
-        const key = `delete-btn-${index}`;
-        originalDisplay[key] = btn.style.display;
-        btn.style.display = 'none';
-    });
-
-    // Hide suggestions dropdowns
-    suggestionsDropdowns.forEach((dropdown, index) => {
-        const key = `suggestions-dropdown-${index}`;
-        originalDisplay[key] = dropdown.style.display;
-        dropdown.style.display = 'none';
-    });
-
-    // Temporarily hide the last column (Delete column) in header, body, and footer
+    // Временно скрываем последнюю колонку (удаление) в заголовке, теле и футере
     const headerLastCell = document.querySelector('#product-table thead th:last-child');
-    const bodyLastCells = document.querySelectorAll('#product-table tbody td:last-child');
+    const bodyLastCells = Array.from(document.querySelectorAll('#product-table tbody td:last-child'));
     const footerLastCell = document.querySelector('#product-table tfoot td:last-child');
 
-    if (headerLastCell) {
-        originalDisplay.headerLastCell = headerLastCell.style.display;
-        headerLastCell.style.display = 'none';
-    }
-    originalDisplay.bodyLastCells = [];
-    bodyLastCells.forEach(cell => {
-        originalDisplay.bodyLastCells.push({ element: cell, display: cell.style.display });
-        cell.style.display = 'none';
-    });
-    if (footerLastCell) {
-        originalDisplay.footerLastCell = footerLastCell.style.display;
-        footerLastCell.style.display = 'none';
-    }
+    storeAndApplyStyle(headerLastCell, 'display', 'none');
+    bodyLastCells.forEach(cell => storeAndApplyStyle(cell, 'display', 'none'));
+    storeAndApplyStyle(footerLastCell, 'display', 'none');
 
 
-    // 2. IMPORTANT: Remove scaling from the table or its container
-    // We need to check the computed style to see if transform: scale is applied
-    const computedStyle = window.getComputedStyle(elementToCapture);
-    const transformValue = computedStyle.transform;
+    // 2. Агрессивно обеспечиваем полную видимость содержимого и отсутствие масштабирования
+    // Убираем позиционирование, фиксированные размеры и ограничения overflow для main-content
+    storeAndApplyStyle(elementToCapture, 'position', 'static');
+    storeAndApplyStyle(elementToCapture, 'top', 'auto');
+    storeAndApplyStyle(elementToCapture, 'left', 'auto');
+    storeAndApplyStyle(elementToCapture, 'right', 'auto');
+    storeAndApplyStyle(elementToCapture, 'bottom', 'auto');
+    storeAndApplyStyle(elementToCapture, 'height', 'auto');
+    storeAndApplyStyle(elementToCapture, 'maxHeight', 'none');
+    storeAndApplyStyle(elementToCapture, 'overflow', 'visible'); // Убедимся, что контент не обрезается
 
-    if (transformValue && transformValue !== 'none') {
-        console.log('Обнаружено преобразование на контейнере:', transformValue);
-        originalTransform.elementToCapture = elementToCapture.style.transform;
-        elementToCapture.style.transform = 'none'; // Temporarily remove transform
-    }
 
-    // Also check for scaling on the table itself
-    const tableComputedStyle = window.getComputedStyle(productTable);
-    const tableTransformValue = tableComputedStyle.transform;
+    // Убеждаемся, что таблица и ее тело занимают полный размер содержимого
+    storeAndApplyStyle(tableBody, 'overflow', 'visible');
+    storeAndApplyStyle(tableBody, 'height', 'auto');
+    storeAndApplyStyle(tableBody, 'maxHeight', 'none');
 
-    if (tableTransformValue && tableTransformValue !== 'none') {
-        console.log('Обнаружено преобразование на таблице:', tableTransformValue);
-        originalTransform.productTable = productTable.style.transform;
-        productTable.style.transform = 'none'; // Temporarily remove transform
-    }
+    // Убираем любые трансформации (масштабирование) с элемента контейнера и таблицы
+    storeAndApplyComputedStyle(elementToCapture, 'transform', 'none');
+    storeAndApplyComputedStyle(productTable, 'transform', 'none');
 
-    // Temporarily remove overflow and set height to auto for capturing full content
-    tableBody.style.overflow = 'visible';
-    tableBody.style.height = 'auto';
-    tableBody.style.maxHeight = 'none';
+    // Для input-полей: убираем фокус, чтобы их текущие значения были "зафиксированы"
+    tableBody.querySelectorAll('input, select').forEach(input => input.blur());
 
-    // To ensure inputs show their actual values, not their initial HTML 'value' attribute
-    tableBody.querySelectorAll('input').forEach(input => {
-        input.blur(); // Remove focus to ensure value is committed by browser
-    });
 
-    // Small delay to ensure DOM updates are rendered and transforms are removed
+    // Небольшая задержка, чтобы DOM успел обновиться после изменения стилей
     setTimeout(() => {
-        // Calculate the effective width and height of the table
-        // We're capturing `elementToCapture` which contains the table.
-        // `scrollWidth` and `scrollHeight` should give us the full content dimensions.
+        // Пересчитываем размеры *после* применения стилей
+        // Используем scrollWidth/scrollHeight для получения фактического размера содержимого
         const captureWidth = elementToCapture.scrollWidth;
         const captureHeight = elementToCapture.scrollHeight;
+
+        console.log(`Вычисленные размеры для захвата: ${captureWidth}x${captureHeight}`);
 
         html2canvas(elementToCapture, {
             width: captureWidth,
             height: captureHeight,
-            // To ensure the screenshot dimensions are not affected by device pixel ratio,
-            // you might want to consider `scale: 1` if you truly want 1:1 pixels.
-            // However, typically `scale: window.devicePixelRatio` (default) is desired
-            // for sharper images on high-DPI screens.
-            // If you want to force original non-scaled render, set scale: 1
-            // scale: 1, // Uncomment this if you consistently get blurry/too large screenshots
-            scrollX: -window.scrollX,
-            scrollY: -window.scrollY,
-            windowWidth: document.documentElement.offsetWidth,
-            windowHeight: document.documentElement.offsetHeight,
-            useCORS: true
+            // scale: 1, // Раскомментируйте, если изображение слишком маленькое/размытое на экранах с высоким DPI
+            // dpi: 300, // Раскомментируйте, если нужен скриншот более высокого разрешения для печати
+            scrollX: -window.scrollX, // Учитываем текущий горизонтальный скролл страницы
+            scrollY: -window.scrollY, // Учитываем текущий вертикальный скролл страницы
+            windowWidth: document.documentElement.offsetWidth, // Учитываем ширину окна
+            windowHeight: document.documentElement.offsetHeight, // Учитываем высоту окна
+            useCORS: true, // Важно, если у вас есть изображения/шрифты с других доменов
+            allowTaint: true, // Может помочь, если есть проблемы с "грязным" канвасом из-за изображений
+            ignoreElements: (element) => {
+                // Если какой-то элемент все равно появляется, можно добавить его сюда для игнорирования
+                // Например: return element.classList.contains('some-floating-button');
+                return false;
+            }
         }).then(canvas => {
             const imageDataUrl = canvas.toDataURL('image/png');
             const link = document.createElement('a');
 
+            // Имя файла на основе текущего активного вида
             const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
+            // Заменяем недопустимые символы на подчеркивания
             const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}.png`;
 
             link.download = filename;
@@ -691,65 +673,22 @@ function captureTableSnapshot() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            console.log(`Snapshot for view '${viewName}' created.`);
+            console.log(`Снимок для вида '${viewName}' создан.`);
         }).catch(error => {
             console.error('Ошибка при создании снимка:', error);
-            alert('Произошла ошибка при создании снимка таблицы.');
+            alert('Произошла ошибка при создании снимка таблицы. Проверьте консоль для деталей.');
         }).finally(() => {
-            // Restore original styles
-            if (appHeader && originalDisplay.appHeader !== undefined) {
-                appHeader.style.display = originalDisplay.appHeader;
-            }
-            if (appFooter && originalDisplay.appFooter !== undefined) {
-                appFooter.style.display = originalDisplay.appFooter;
-            }
-            if (networkStatusIndicator && originalDisplay.networkStatusIndicator !== undefined) {
-                networkStatusIndicator.style.display = originalDisplay.networkStatusIndicator;
-            }
-            if (menuToggleBtn && originalDisplay.menuToggleBtn !== undefined) {
-                menuToggleBtn.style.display = originalDisplay.menuToggleBtn;
-            }
-            if (sideMenu && originalDisplay.sideMenu !== undefined) {
-                sideMenu.style.display = originalDisplay.sideMenu;
-            }
-
-            deleteButtons.forEach((btn, index) => {
-                const key = `delete-btn-${index}`;
-                if (originalDisplay[key] !== undefined) {
-                    btn.style.display = originalDisplay[key];
+            // Восстанавливаем все оригинальные стили
+            for (const key in originalStyles) {
+                const { element, prop, value } = originalStyles[key];
+                if (element && value !== undefined) { // Проверяем, что элемент существует и значение не undefined
+                    element.style[prop] = value;
                 }
-            });
-            suggestionsDropdowns.forEach((dropdown, index) => {
-                const key = `suggestions-dropdown-${index}`;
-                if (originalDisplay[key] !== undefined) {
-                    dropdown.style.display = originalDisplay[key];
-                }
-            });
-
-            if (headerLastCell && originalDisplay.headerLastCell !== undefined) {
-                headerLastCell.style.display = originalDisplay.headerLastCell;
             }
-            originalDisplay.bodyLastCells.forEach(item => { item.element.style.display = item.display; });
-            if (footerLastCell && originalDisplay.footerLastCell !== undefined) {
-                footerLastCell.style.display = originalDisplay.footerLastCell;
-            }
-
-            // Restore transforms
-            if (originalTransform.elementToCapture !== undefined) {
-                elementToCapture.style.transform = originalTransform.elementToCapture;
-            }
-            if (originalTransform.productTable !== undefined) {
-                productTable.style.transform = originalTransform.productTable;
-            }
-
-            // Restore tableBody styles
-            tableBody.style.overflow = originalTableBodyOverflow;
-            tableBody.style.height = originalTableBodyHeight;
-            tableBody.style.maxHeight = originalTableBodyMaxHeight;
+            console.log('Стили восстановлены.');
         });
-    }, 50); // Small delay
+    }, 150); // Увеличена задержка до 150 мс для максимальной надежности
 }
-
 
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
