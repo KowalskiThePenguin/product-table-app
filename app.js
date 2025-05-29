@@ -689,7 +689,7 @@ function captureTableSnapshot() {
             tableBody.style.maxHeight = originalTableBodyMaxHeight;
         });
     }, 50); // Small delay
-}
+}	
 
 
 // --- Функции для работы с данными Google Sheets ---
