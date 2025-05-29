@@ -634,6 +634,7 @@ function captureTableSnapshot() {
         if (footerActionCell) footerActionCell.style.display = '';
     });
 }
+
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
    try {
