@@ -660,47 +660,58 @@ table tbody td:nth-child(2) {
     width: 100%;
     z-index: 1000;
     background-color: #fff;
-    border: 1px solid #007bff;
-    border-top: none;
+    /* Убираем старую границу */
+    /* border: 1px solid #007bff; */
+    border: none; /* Убираем все границы у самого контейнера */
+    border-radius: 8px; /* Более округлые края для современного вида */
     max-height: 250px;
     overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Мягкая, более выраженная тень */
     box-sizing: border-box;
-    border-radius: 0 0 4px 4px;
+    /* Убираем border-top: none; так как нет верхней границы */
 }
 
 /* Стили для отдельных элементов предложений */
 .suggestions-dropdown .suggestion-item {
     padding: 0.7em 1em;
     cursor: pointer;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e0e0e0; /* Легкая, тонкая линия-разделитель */
     text-align: left;
     line-height: 1.4;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Плавный переход */
 }
-
+.suggestions-dropdown .suggestion-item:first-child {
+    border-top-left-radius: 8px; /* Закругляем верхний левый угол первого элемента */
+    border-top-right-radius: 8px; /* Закругляем верхний правый угол первого элемента */
+}
 .suggestions-dropdown .suggestion-item:last-child {
-    border-bottom: none;
+    border-bottom: none; /* Убираем нижнюю границу у последнего элемента */
+    border-bottom-left-radius: 8px; /* Закругляем нижний левый угол последнего элемента */
+    border-bottom-right-radius: 8px; /* Закругляем нижний правый угол последнего элемента */
 }
 
 .suggestions-dropdown .suggestion-item:hover {
-    background-color: #f2f2f2;
+    background-color: #f0f8ff; /* Очень светлый синий фон при наведении */
+    color: #0056b3; /* Чуть темнее синий текст при наведении */
 }
 
 .suggestions-dropdown .suggestion-item.highlighted {
-     background-color: #e9e9e9;
+    background-color: #e6f2ff; /* Светло-голубой фон для выделенного элемента (клавишами) */
+    color: #004085;
 }
 
 /* Стили для многострочного содержимого */
 .suggestions-dropdown .suggestion-item .main-line {
     font-weight: bold;
     word-break: break-word;
+    color: #333; /* Основной цвет текста */
 }
 
 .suggestions-dropdown .suggestion-item .details-line {
-     font-size: 0.9em;
-     color: #666;
-     margin-top: 0.3em;
-     word-break: break-word;
+    font-size: 0.9em;
+    color: #777; /* Более мягкий цвет для деталей */
+    margin-top: 0.3em;
+    word-break: break-word;
 }
 /* style.css */
 
@@ -815,10 +826,7 @@ body {
 }
 
 /* Сдвиг основного контента при открытом меню */
-body.menu-open .container,
-body.menu-open .fab {
-    margin-left: 280px;
-}
+
 /* Сдвиг основного контента при открытом меню */
 body.menu-open .menu-toggle-btn {
     /* Скрываем кнопку-гамбургер */
