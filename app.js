@@ -536,8 +536,8 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content'); // Это .container
-    const productTableElement = document.getElementById('product-table'); // Сама таблица
+    const elementToCapture = document.getElementById('main-content'); // This is .container
+    const productTableElement = document.getElementById('product-table'); // The table itself
 
     if (!elementToCapture) {
         console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
@@ -547,39 +547,44 @@ function captureTableSnapshot() {
 
     console.log('Попытка создать снимок контейнера с отключением медиазапросов...');
 
-    // Элементы, которые нужно скрыть на время создания снимка
+    // Elements to hide during snapshot
     const appHeader = document.getElementById('app-header');
-    const appFooter = document.getElementById('app-footer'); // Содержит FAB
+    const appFooter = document.getElementById('app-footer');
     const sideMenu = document.getElementById('side-menu');
     const networkStatus = document.getElementById('network-status');
 
-    // Сохраняем исходные инлайн-стили для элементов, чьи transform/width/overflow мы изменяем
+    // Save original inline styles for elements whose transform/width/overflow we are changing
     const originalContainerTransform = elementToCapture.style.transform;
     const originalContainerWidth = elementToCapture.style.width;
     const originalContainerOverflowX = elementToCapture.style.overflowX;
     const originalTableTransform = productTableElement ? productTableElement.style.transform : '';
 
-    // Сохраняем исходные стили display для элементов, которые будем скрывать
+    // Save original display styles for elements to hide
     const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
     const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
     const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
     const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
 
-    // Временно переопределяем стили, чтобы отключить эффекты медиазапросов (масштабирование и т.д.)
-    elementToCapture.style.transform = 'none';
-    elementToCapture.style.width = 'auto'; // Позволяем контейнеру подстроиться под контент
-    elementToCapture.style.overflowX = 'visible'; // Предотвращаем обрезку контента
+    // Temporarily override styles to disable media query effects (scaling, etc.)
+    // Added !important to ensure override. This will set style property directly.
+    elementToCapture.style.cssText += 'transform: none !important; width: auto !important; overflow-x: visible !important;';
     if (productTableElement) {
-        productTableElement.style.transform = 'none';
+        productTableElement.style.cssText += 'transform: none !important;';
+        // Add specific width/min-width/max-width for table if it scales on small screens
+        productTableElement.style.cssText += 'width: 100% !important; min-width: 0 !important; max-width: none !important;';
     }
 
-    // Временно скрываем глобальные элементы интерфейса
+    // You might also need to override font sizes or padding if they change with media queries
+    // For example, if .container font size changes:
+    // elementToCapture.style.cssText += 'font-size: 16px !important; padding: 20px !important;';
+
+    // Temporarily hide global UI elements
     if (appHeader) appHeader.style.display = 'none';
     if (appFooter) appFooter.style.display = 'none';
     if (sideMenu) sideMenu.style.display = 'none';
     if (networkStatus) networkStatus.style.display = 'none';
 
-    // Временно скрываем колонку "Удалить" в шапке, теле и подвале ТАБЛИЦЫ ВНУТРИ elementToCapture
+    // Temporarily hide the "Delete" column in table header, body, and footer WITHIN elementToCapture
     const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
     const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
     const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
@@ -589,12 +594,12 @@ function captureTableSnapshot() {
     if (footerActionCell) footerActionCell.style.display = 'none';
 
     html2canvas(elementToCapture, {
-        scale: 2, // Масштаб для повышения качества выходного изображения
+        scale: 2,
         logging: true,
         useCORS: true,
-        // html2canvas будет рендерить элемент с учетом временно примененных стилей (без transform и т.д.)
-        // width: elementToCapture.scrollWidth, // Рассмотрите, если возникнут проблемы с шириной
-        // height: elementToCapture.scrollHeight // Рассмотрите, если возникнут проблемы с высотой
+        // Consider explicitly setting width and height here if the captured element's dimensions are problematic
+        // width: elementToCapture.scrollWidth,
+        // height: elementToCapture.scrollHeight
     }).then(canvas => {
         console.log('Снимок успешно создан на Canvas.');
         const dataUrl = canvas.toDataURL('image/png');
@@ -614,7 +619,7 @@ function captureTableSnapshot() {
         console.error('Ошибка при создании снимка:', error);
         alert('Произошла ошибка при создании снимка.');
     }).finally(() => {
-        // Восстанавливаем исходные инлайн-стили для измененных элементов
+        // Restore original inline styles for modified elements
         elementToCapture.style.transform = originalContainerTransform;
         elementToCapture.style.width = originalContainerWidth;
         elementToCapture.style.overflowX = originalContainerOverflowX;
@@ -622,19 +627,18 @@ function captureTableSnapshot() {
             productTableElement.style.transform = originalTableTransform;
         }
 
-        // Восстанавливаем отображение ранее скрытых глобальных элементов
+        // Restore display styles for hidden elements
         if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
         if (appFooter) appFooter.style.display = originalAppFooterDisplay;
         if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
         if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
 
-        // Восстанавливаем отображение последней колонки таблицы
+        // Restore display for "Delete" columns
         actionHeaders.forEach(th => th.style.display = '');
         actionCells.forEach(td => td.style.display = '');
         if (footerActionCell) footerActionCell.style.display = '';
     });
 }
-
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
    try {
