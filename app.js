@@ -536,8 +536,8 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content'); // This is .container
-    const productTableElement = document.getElementById('product-table'); // The table itself
+    const elementToCapture = document.getElementById('main-content'); // Это .container
+    const productTableElement = document.getElementById('product-table'); // Сама таблица
 
     if (!elementToCapture) {
         console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
@@ -547,20 +547,19 @@ function captureTableSnapshot() {
 
     console.log('Попытка создать снимок контейнера с отключением медиазапросов...');
 
-    // Elements to hide during snapshot
-    const appHeader = document.getElementById('app-header'); //
-    const appFooter = document.getElementById('app-footer'); //
-    const sideMenu = document.getElementById('side-menu'); //
-    const networkStatus = document.getElementById('network-status'); //
+    // Элементы для скрытия во время создания снимка
+    const appHeader = document.getElementById('app-header');
+    const appFooter = document.getElementById('app-footer');
+    const sideMenu = document.getElementById('side-menu');
+    const networkStatus = document.getElementById('network-status');
 
-    // Find elements related to company name and potentially a logo within the captured element
-    // Assuming .company-name is within a .print-header-text div, which might be added/visible in #main-content for the snapshot
-    const companyNameElement = elementToCapture.querySelector('.company-name'); //
-    const printHeaderImageDiv = elementToCapture.querySelector('.print-header-image'); // This div holds the logo
-    const logoElement = printHeaderImageDiv ? printHeaderImageDiv.querySelector('img') : null; // The actual <img> tag
+    // Находим элементы, связанные с названием компании и логотипом
+    const printHeaderTextElement = elementToCapture.querySelector('.print-header-text');
+    const printHeaderImageDiv = elementToCapture.querySelector('.print-header-image');
+    // Нам не обязательно напрямую скрывать .company-name, если его родитель (printHeaderTextElement) скрыт.
+    // Если .company-name может быть вне .print-header-text, тогда его нужно искать и скрывать отдельно.
 
-
-    // Save original inline styles for elements whose transform/width/overflow we are changing
+    // Сохраняем исходные встроенные стили для элементов, чьи свойства transform/width/overflow мы меняем
     const originalContainerTransform = elementToCapture.style.transform;
     const originalContainerWidth = elementToCapture.style.width;
     const originalContainerOverflowX = elementToCapture.style.overflowX;
@@ -570,79 +569,54 @@ function captureTableSnapshot() {
     const originalProductTableMaxWidth = productTableElement ? productTableElement.style.maxWidth : '';
     const originalProductTableTableLayout = productTableElement ? productTableElement.style.tableLayout : '';
 
-    // Save styles for company name
-    const originalCompanyNameFlexShrink = companyNameElement ? companyNameElement.style.flexShrink : ''; //
-    const originalCompanyNameFlexGrow = companyNameElement ? companyNameElement.style.flexGrow : ''; //
-    const originalCompanyNameMaxWidth = companyNameElement ? companyNameElement.style.maxWidth : '';
-    const originalCompanyNameWhiteSpace = companyNameElement ? companyNameElement.style.whiteSpace : ''; //
-    const originalCompanyNameOverflow = companyNameElement ? companyNameElement.style.overflow : ''; //
-    const originalCompanyNameTextOverflow = companyNameElement ? companyNameElement.style.textOverflow : ''; //
+    // Сохраняем display для элементов, которые скрываем
+    const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
+    const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
+    const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
+    const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
 
-    // Save styles for logo and its container
-    const originalPrintHeaderImageDisplay = printHeaderImageDiv ? printHeaderImageDiv.style.display : ''; //
-    const originalPrintHeaderImageWidth = printHeaderImageDiv ? printHeaderImageDiv.style.width : ''; //
-    const originalPrintHeaderImageMaxWidth = printHeaderImageDiv ? printHeaderImageDiv.style.maxWidth : '';
-    const originalLogoMaxWidth = logoElement ? logoElement.style.maxWidth : ''; //
-    const originalLogoHeight = logoElement ? logoElement.style.height : ''; //
-    const originalLogoFloat = logoElement ? logoElement.style.float : ''; //
-    const originalLogoTextAlign = logoElement ? logoElement.style.textAlign : ''; //
+    // *** НОВОЕ: Сохраняем исходные display стили для элементов названия компании и логотипа ***
+    const originalPrintHeaderTextDisplay = printHeaderTextElement ? printHeaderTextElement.style.display : '';
+    const originalPrintHeaderImageDisplay = printHeaderImageDiv ? printHeaderImageDiv.style.display : '';
 
 
-    // Save display styles for elements to hide
-    const originalAppHeaderDisplay = appHeader ? appHeader.style.display : ''; //
-    const originalAppFooterDisplay = appFooter ? appFooter.style.display : ''; //
-    const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : ''; //
-    const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : ''; //
-
-    // Temporarily override styles to disable media query effects (scaling, etc.)
-    // Adding !important to ensure override. This will set style property directly.
+    // Временно переопределяем стили для отключения эффектов медиазапросов (масштабирование и т.д.)
     elementToCapture.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; overflow-x: visible !important; padding: 20px !important;';
     if (productTableElement) {
-        productTableElement.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; table-layout: auto !important;'; //
+        productTableElement.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; table-layout: auto !important;';
     }
 
-    // *** Add styles for company name ***
-    if (companyNameElement) {
-        // Ensure company name doesn't shrink and can expand
-        companyNameElement.style.cssText += 'flex-shrink: 0 !important; flex-grow: 0 !important; max-width: none !important; white-space: nowrap !important; overflow: visible !important; text-overflow: clip !important;'; //
-    }
+    // Временно скрываем глобальные элементы UI
+    if (appHeader) appHeader.style.display = 'none';
+    if (appFooter) appFooter.style.display = 'none';
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (networkStatus) networkStatus.style.display = 'none';
 
-    // *** Add styles for logo and its container ***
-    if (printHeaderImageDiv) {
-        printHeaderImageDiv.style.cssText += 'display: block !important; text-align: center !important; width: 100% !important; max-width: none !important;'; //
-    }
-    if (logoElement) {
-        logoElement.style.cssText += 'max-width: 100% !important; height: auto !important; float: none !important; text-align: initial !important;'; //
-    }
+    // *** НОВОЕ: Временно скрываем элементы названия компании и логотипа ***
+    if (printHeaderTextElement) printHeaderTextElement.style.display = 'none';
+    if (printHeaderImageDiv) printHeaderImageDiv.style.display = 'none';
 
 
-    // Temporarily hide global UI elements
-    if (appHeader) appHeader.style.display = 'none'; //
-    if (appFooter) appFooter.style.display = 'none'; //
-    if (sideMenu) sideMenu.style.display = 'none'; //
-    if (networkStatus) networkStatus.style.display = 'none'; //
-
-    // Temporarily hide the "Delete" column in table header, body, and footer WITHIN elementToCapture
-    const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child'); //
-    const actionCells = elementToCapture.querySelectorAll('tbody td:last-child'); //
-    const footerActionCell = elementToCapture.querySelector('tfoot td:last-child'); //
+    // Временно скрываем столбец "Удалить" в заголовке, теле и подвале таблицы внутри elementToCapture
+    const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
+    const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
+    const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
 
     actionHeaders.forEach(th => th.style.display = 'none');
     actionCells.forEach(td => td.style.display = 'none');
     if (footerActionCell) footerActionCell.style.display = 'none';
 
-    // *** Key change: Determine width for html2canvas based on scrollWidth ***
-    // Take the maximum width of either the container or the table.
+    // Определяем ширину для html2canvas на основе scrollWidth
     const captureWidth = Math.max(elementToCapture.scrollWidth, productTableElement ? productTableElement.scrollWidth : 0);
-    const captureHeight = elementToCapture.scrollHeight; // Height is usually determined correctly
+    const captureHeight = elementToCapture.scrollHeight;
 
     html2canvas(elementToCapture, {
-        scale: 2, // Increase scale for better quality
+        scale: 2, // Увеличиваем масштаб для лучшего качества
         logging: true,
         useCORS: true,
-        width: captureWidth,   // Explicitly specify width
-        height: captureHeight, // Explicitly specify height
-        scrollY: -window.scrollY // Account for scroll if the element is not at the top of the page
+        width: captureWidth,   // Явно указываем ширину
+        height: captureHeight, // Явно указываем высоту
+        scrollY: -window.scrollY // Учитываем прокрутку, если элемент не в верхней части страницы
     }).then(canvas => {
         console.log('Снимок успешно создан на Canvas.');
         const dataUrl = canvas.toDataURL('image/png');
@@ -662,7 +636,7 @@ function captureTableSnapshot() {
         console.error('Ошибка при создании снимка:', error);
         alert('Произошла ошибка при создании снимка.');
     }).finally(() => {
-        // Restore original inline styles for modified elements
+        // Восстанавливаем исходные встроенные стили
         elementToCapture.style.transform = originalContainerTransform;
         elementToCapture.style.width = originalContainerWidth;
         elementToCapture.style.overflowX = originalContainerOverflowX;
@@ -675,42 +649,23 @@ function captureTableSnapshot() {
             productTableElement.style.tableLayout = originalProductTableTableLayout;
         }
 
-        // *** Restore styles for company name ***
-        if (companyNameElement) {
-            companyNameElement.style.flexShrink = originalCompanyNameFlexShrink; //
-            companyNameElement.style.flexGrow = originalCompanyNameFlexGrow; //
-            companyNameElement.style.maxWidth = originalCompanyNameMaxWidth;
-            companyNameElement.style.whiteSpace = originalCompanyNameWhiteSpace; //
-            companyNameElement.style.overflow = originalCompanyNameOverflow; //
-            companyNameElement.style.textOverflow = originalCompanyNameTextOverflow; //
-        }
-        // *** Restore styles for logo and its container ***
-        if (printHeaderImageDiv) {
-            printHeaderImageDiv.style.display = originalPrintHeaderImageDisplay; //
-            printHeaderImageDiv.style.width = originalPrintHeaderImageWidth; //
-            printHeaderImageDiv.style.maxWidth = originalPrintHeaderImageMaxWidth;
-        }
-        if (logoElement) {
-            logoElement.style.maxWidth = originalLogoMaxWidth; //
-            logoElement.style.height = originalLogoHeight; //
-            logoElement.style.float = originalLogoFloat; //
-            logoElement.style.textAlign = originalLogoTextAlign; //
-        }
+        // Восстанавливаем display для скрытых элементов UI
+        if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
+        if (appFooter) appFooter.style.display = originalAppFooterDisplay;
+        if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
+        if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
+
+        // *** НОВОЕ: Восстанавливаем display стили для элементов названия компании и логотипа ***
+        if (printHeaderTextElement) printHeaderTextElement.style.display = originalPrintHeaderTextDisplay;
+        if (printHeaderImageDiv) printHeaderImageDiv.style.display = originalPrintHeaderImageDisplay;
 
 
-        // Restore display styles for hidden elements
-        if (appHeader) appHeader.style.display = originalAppHeaderDisplay; //
-        if (appFooter) appFooter.style.display = originalAppFooterDisplay; //
-        if (sideMenu) sideMenu.style.display = originalSideMenuDisplay; //
-        if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay; //
-
-        // Restore display for "Delete" columns
+        // Восстанавливаем display для столбцов "Удалить"
         actionHeaders.forEach(th => th.style.display = '');
         actionCells.forEach(td => td.style.display = '');
         if (footerActionCell) footerActionCell.style.display = '';
     });
 }
-
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
    try {
