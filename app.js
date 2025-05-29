@@ -536,9 +536,8 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content');
-    // Находим кнопки действий, чтобы скрыть их на снимке
-    const actionButtonsElement = elementToCapture.querySelector('.action-buttons');
+    const elementToCapture = document.getElementById('main-content'); // This is the .container
+    const productTableElement = document.getElementById('product-table'); // The table itself
 
     if (!elementToCapture) {
         console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
@@ -548,12 +547,39 @@ function captureTableSnapshot() {
 
     console.log('Попытка создать снимок контейнера...');
 
-    // Временно скрываем кнопки действий
-    if (actionButtonsElement) {
-        actionButtonsElement.style.display = 'none';
+    // Elements to hide for the snapshot
+    const appHeader = document.getElementById('app-header');
+    const appFooter = document.getElementById('app-footer'); // Contains the FAB
+    const sideMenu = document.getElementById('side-menu');
+    const networkStatus = document.getElementById('network-status');
+
+    // Store original inline styles for elements whose transform/width/overflow we are changing
+    const originalContainerTransform = elementToCapture.style.transform;
+    const originalContainerWidth = elementToCapture.style.width;
+    const originalContainerOverflowX = elementToCapture.style.overflowX;
+    const originalTableTransform = productTableElement ? productTableElement.style.transform : '';
+
+    // Store original display styles for elements we are hiding
+    const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
+    const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
+    const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
+    const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
+
+    // Temporarily override media query scaling and related styles
+    elementToCapture.style.transform = 'none';
+    elementToCapture.style.width = 'auto'; // Allow container to fit content
+    elementToCapture.style.overflowX = 'visible'; // Prevent content clipping
+    if (productTableElement) {
+        productTableElement.style.transform = 'none';
     }
 
-    // Временно скрываем колонку "Удалить" в шапке, теле и подвале
+    // Temporarily hide global UI elements
+    if (appHeader) appHeader.style.display = 'none';
+    if (appFooter) appFooter.style.display = 'none';
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (networkStatus) networkStatus.style.display = 'none';
+
+    // Временно скрываем колонку "Удалить" в шапке, теле и подвале ТАБЛИЦЫ ВНУТРИ elementToCapture
     const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
     const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
     const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
@@ -562,41 +588,52 @@ function captureTableSnapshot() {
     actionCells.forEach(td => td.style.display = 'none');
     if (footerActionCell) footerActionCell.style.display = 'none';
 
-    // Используем html2canvas для создания снимка
     html2canvas(elementToCapture, {
-        scale: 2, // Увеличиваем масштаб для лучшего качества
-        logging: true, // Включаем логирование html2canvas
-        useCORS: true // Разрешаем использование CORS для изображений (если есть)
+        scale: 2, // User-defined scale for output image quality
+        logging: true,
+        useCORS: true,
+        // Ensure html2canvas captures the full width/height after transforms are removed
+        // width: elementToCapture.scrollWidth, // Consider if issues arise
+        // height: elementToCapture.scrollHeight // Consider if issues arise
     }).then(canvas => {
         console.log('Снимок успешно создан на Canvas.');
-        const dataUrl = canvas.toDataURL('image/png'); // Преобразуем canvas в формат PNG
-        const link = document.createElement('a'); // Создаем временную ссылку
-        link.href = dataUrl; // Устанавливаем данные снимка как href ссылки
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
 
-        // Имя файла берем из viewMetadata и очищаем от недопустимых символов, добавляем суффикс
         const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
         const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
 
-        link.setAttribute('download', filename); // Устанавливаем имя файла для скачивания
-        document.body.appendChild(link); // Добавляем ссылку в DOM
-        link.click(); // Имитируем клик для скачивания
-        document.body.removeChild(link); // Удаляем ссылку
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         console.log('Снимок захвачен, инициировано скачивание.');
 
     }).catch(error => {
         console.error('Ошибка при создании снимка:', error);
         alert('Произошла ошибка при создании снимка.');
     }).finally(() => {
-        // Восстанавливаем скрытые элементы после создания снимка
-        if (actionButtonsElement) {
-             actionButtonsElement.style.display = '';
+        // Restore original inline styles for scaled elements
+        elementToCapture.style.transform = originalContainerTransform;
+        elementToCapture.style.width = originalContainerWidth;
+        elementToCapture.style.overflowX = originalContainerOverflowX;
+        if (productTableElement) {
+            productTableElement.style.transform = originalTableTransform;
         }
+
+        // Restore display of previously hidden global elements
+        if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
+        if (appFooter) appFooter.style.display = originalAppFooterDisplay;
+        if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
+        if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
+
+        // Restore display of table's last column
         actionHeaders.forEach(th => th.style.display = '');
         actionCells.forEach(td => td.style.display = '');
         if (footerActionCell) footerActionCell.style.display = '';
     });
 }
-
 
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
