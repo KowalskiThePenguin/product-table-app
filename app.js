@@ -536,8 +536,8 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content');
-    const productTableElement = document.getElementById('product-table');
+    const elementToCapture = document.getElementById('main-content'); // Это .container
+    const productTableElement = document.getElementById('product-table'); // Сама таблица
 
     if (!elementToCapture) {
         console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
@@ -552,8 +552,6 @@ function captureTableSnapshot() {
     const sideMenu = document.getElementById('side-menu');
     const networkStatus = document.getElementById('network-status');
 
-    // Находим элементы, которые нужно скрыть (если они не скрываются классом)
-    // Эти переменные нужны в основном для сохранения оригинальных стилей
     const printHeaderTextElement = document.querySelector('.print-header-text');
     const printHeaderImageDiv = document.querySelector('.print-header-image');
 
@@ -563,23 +561,25 @@ function captureTableSnapshot() {
     const originalContainerWidth = elementToCapture.style.width;
     const originalContainerOverflowX = elementToCapture.style.overflowX;
     const originalContainerPadding = elementToCapture.style.padding;
+    const originalContainerPaddingRight = elementToCapture.style.paddingRight; // *** НОВОЕ: Сохраняем original padding-right ***
+
     const originalProductTableTransform = productTableElement ? productTableElement.style.transform : '';
-    const originalProductTableWidth = productTableElement ? productTableElement.style.width : '';
+    const originalProductTableWidth = productTableElement ? productTablelement.style.width : '';
     const originalProductTableMaxWidth = productTableElement ? productTableElement.style.maxWidth : '';
     const originalProductTableTableLayout = productTableElement ? productTableElement.style.tableLayout : '';
 
-    // Сохраняем display для элементов UI
     const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
     const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
     const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
     const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
 
-    // --- Убедимся, что print-header-text и print-header-image не имеют display: none; в своих style атрибутах,
-    // --- если они были скрыты ранее, чтобы класс мог их переопределить.
-    // --- Мы будем использовать класс для скрытия!
+    const originalPrintHeaderTextDisplay = printHeaderTextElement ? printHeaderTextElement.style.display : '';
+    const originalPrintHeaderImageDisplay = printHeaderImageDiv ? printHeaderImageDiv.style.display : '';
+
 
     // Временно переопределяем стили для основного захватываемого элемента
-    elementToCapture.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; overflow-x: visible !important; padding: 20px !important;';
+    // *** ИЗМЕНЕНО: Добавлен padding-right ***
+    elementToCapture.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; overflow-x: visible !important; padding: 20px !important; padding-right: 30px !important;'; // Например, 30px отступ справа
     if (productTableElement) {
         productTableElement.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; table-layout: auto !important;';
     }
@@ -590,6 +590,12 @@ function captureTableSnapshot() {
     if (sideMenu) sideMenu.style.display = 'none';
     if (networkStatus) networkStatus.style.display = 'none';
 
+    // Временно скрываем элементы названия компании и логотипа
+    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем класс к <body> для скрытия элементов ---
+    document.body.classList.add('hide-for-screenshot');
+    console.log('Добавлен класс hide-for-screenshot к body.');
+
+
     // Временно скрываем столбец "Удалить"
     const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
     const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
@@ -599,15 +605,9 @@ function captureTableSnapshot() {
     actionCells.forEach(td => td.style.display = 'none');
     if (footerActionCell) footerActionCell.style.display = 'none';
 
-    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем класс к <body> для скрытия элементов ---
-    document.body.classList.add('hide-for-screenshot');
-    console.log('Добавлен класс hide-for-screenshot к body.');
-
-
     const captureWidth = Math.max(elementToCapture.scrollWidth, productTableElement ? productTableElement.scrollWidth : 0);
     const captureHeight = elementToCapture.scrollHeight;
 
-    // Добавляем небольшую задержку, чтобы DOM гарантированно обновился и CSS применился
     setTimeout(() => {
         html2canvas(elementToCapture, {
             scale: 2,
@@ -616,8 +616,6 @@ function captureTableSnapshot() {
             width: captureWidth,
             height: captureHeight,
             scrollY: -window.scrollY,
-            // Если проблема с рендерингом стилей, попробуйте forceInliner: true, но это может быть медленнее
-            // forceInliner: true,
         }).then(canvas => {
             console.log('Снимок успешно создан на Canvas.');
             const dataUrl = canvas.toDataURL('image/png');
@@ -646,6 +644,8 @@ function captureTableSnapshot() {
             elementToCapture.style.width = originalContainerWidth;
             elementToCapture.style.overflowX = originalContainerOverflowX;
             elementToCapture.style.padding = originalContainerPadding;
+            elementToCapture.style.paddingRight = originalContainerPaddingRight; // *** НОВОЕ: Восстанавливаем original padding-right ***
+
 
             if (productTableElement) {
                 productTableElement.style.transform = originalProductTableTransform;
@@ -660,12 +660,32 @@ function captureTableSnapshot() {
             if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
             if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
 
+            // Восстанавливаем display стили для элементов названия компании и логотипа
+            // В этом случае мы полагаемся на удаление класса 'hide-for-screenshot' из body
+            // Если какие-то элементы были скрыты НЕ через класс, а напрямую style.display = 'none !important',
+            // то их нужно восстанавливать через removeProperty('display') или по их originalDisplay
+            // Однако, сейчас мы полагаемся на класс, поэтому эти строки не нужны.
+            /*
+            if (printHeaderTextElement) {
+                printHeaderTextElement.style.removeProperty('display');
+                if (originalPrintHeaderTextDisplay !== '') {
+                    printHeaderTextElement.style.display = originalPrintHeaderTextDisplay;
+                }
+            }
+            if (printHeaderImageDiv) {
+                printHeaderImageDiv.style.removeProperty('display');
+                if (originalPrintHeaderImageDisplay !== '') {
+                    printHeaderImageDiv.style.display = originalPrintHeaderImageDisplay;
+                }
+            }
+            */
+
             // Восстанавливаем display для столбцов "Удалить"
             actionHeaders.forEach(th => th.style.display = '');
             actionCells.forEach(td => td.style.display = '');
             if (footerActionCell) footerActionCell.style.display = '';
         });
-    }, 100); // Увеличил задержку до 100 мс для надежности
+    }, 100);
 }
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
