@@ -536,8 +536,8 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content'); // This is the .container
-    const productTableElement = document.getElementById('product-table'); // The table itself
+    const elementToCapture = document.getElementById('main-content'); // Это .container
+    const productTableElement = document.getElementById('product-table'); // Сама таблица
 
     if (!elementToCapture) {
         console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
@@ -545,35 +545,35 @@ function captureTableSnapshot() {
         return;
     }
 
-    console.log('Попытка создать снимок контейнера...');
+    console.log('Попытка создать снимок контейнера с отключением медиазапросов...');
 
-    // Elements to hide for the snapshot
+    // Элементы, которые нужно скрыть на время создания снимка
     const appHeader = document.getElementById('app-header');
-    const appFooter = document.getElementById('app-footer'); // Contains the FAB
+    const appFooter = document.getElementById('app-footer'); // Содержит FAB
     const sideMenu = document.getElementById('side-menu');
     const networkStatus = document.getElementById('network-status');
 
-    // Store original inline styles for elements whose transform/width/overflow we are changing
+    // Сохраняем исходные инлайн-стили для элементов, чьи transform/width/overflow мы изменяем
     const originalContainerTransform = elementToCapture.style.transform;
     const originalContainerWidth = elementToCapture.style.width;
     const originalContainerOverflowX = elementToCapture.style.overflowX;
     const originalTableTransform = productTableElement ? productTableElement.style.transform : '';
 
-    // Store original display styles for elements we are hiding
+    // Сохраняем исходные стили display для элементов, которые будем скрывать
     const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
     const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
     const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
     const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
 
-    // Temporarily override media query scaling and related styles
+    // Временно переопределяем стили, чтобы отключить эффекты медиазапросов (масштабирование и т.д.)
     elementToCapture.style.transform = 'none';
-    elementToCapture.style.width = 'auto'; // Allow container to fit content
-    elementToCapture.style.overflowX = 'visible'; // Prevent content clipping
+    elementToCapture.style.width = 'auto'; // Позволяем контейнеру подстроиться под контент
+    elementToCapture.style.overflowX = 'visible'; // Предотвращаем обрезку контента
     if (productTableElement) {
         productTableElement.style.transform = 'none';
     }
 
-    // Temporarily hide global UI elements
+    // Временно скрываем глобальные элементы интерфейса
     if (appHeader) appHeader.style.display = 'none';
     if (appFooter) appFooter.style.display = 'none';
     if (sideMenu) sideMenu.style.display = 'none';
@@ -589,12 +589,12 @@ function captureTableSnapshot() {
     if (footerActionCell) footerActionCell.style.display = 'none';
 
     html2canvas(elementToCapture, {
-        scale: 2, // User-defined scale for output image quality
+        scale: 2, // Масштаб для повышения качества выходного изображения
         logging: true,
         useCORS: true,
-        // Ensure html2canvas captures the full width/height after transforms are removed
-        // width: elementToCapture.scrollWidth, // Consider if issues arise
-        // height: elementToCapture.scrollHeight // Consider if issues arise
+        // html2canvas будет рендерить элемент с учетом временно примененных стилей (без transform и т.д.)
+        // width: elementToCapture.scrollWidth, // Рассмотрите, если возникнут проблемы с шириной
+        // height: elementToCapture.scrollHeight // Рассмотрите, если возникнут проблемы с высотой
     }).then(canvas => {
         console.log('Снимок успешно создан на Canvas.');
         const dataUrl = canvas.toDataURL('image/png');
@@ -614,7 +614,7 @@ function captureTableSnapshot() {
         console.error('Ошибка при создании снимка:', error);
         alert('Произошла ошибка при создании снимка.');
     }).finally(() => {
-        // Restore original inline styles for scaled elements
+        // Восстанавливаем исходные инлайн-стили для измененных элементов
         elementToCapture.style.transform = originalContainerTransform;
         elementToCapture.style.width = originalContainerWidth;
         elementToCapture.style.overflowX = originalContainerOverflowX;
@@ -622,19 +622,18 @@ function captureTableSnapshot() {
             productTableElement.style.transform = originalTableTransform;
         }
 
-        // Restore display of previously hidden global elements
+        // Восстанавливаем отображение ранее скрытых глобальных элементов
         if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
         if (appFooter) appFooter.style.display = originalAppFooterDisplay;
         if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
         if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
 
-        // Restore display of table's last column
+        // Восстанавливаем отображение последней колонки таблицы
         actionHeaders.forEach(th => th.style.display = '');
         actionCells.forEach(td => td.style.display = '');
         if (footerActionCell) footerActionCell.style.display = '';
     });
 }
-
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
    try {
