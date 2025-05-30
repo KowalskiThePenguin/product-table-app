@@ -178,7 +178,7 @@ function parseFormattedNumber(str) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // ИСПРАВЛЕН ПУТЬ К СКРИПТУ Service Worker для GitHub Pages
-    navigator.serviceWorker.register('/product-table-app/sw.js', { scope: '/product-table-app/' })
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then((registration) => {
         console.log('Service Worker: Регистрация успешна с областью видимости:', registration.scope);
       })
@@ -564,7 +564,7 @@ function captureTableSnapshot() {
     const originalContainerPaddingRight = elementToCapture.style.paddingRight; // *** НОВОЕ: Сохраняем original padding-right ***
 
     const originalProductTableTransform = productTableElement ? productTableElement.style.transform : '';
-    const originalProductTableWidth = productTableElement ? productTablelement.style.width : '';
+    const originalProductTableWidth = productTableElement ? productTableElement.style.width : '';
     const originalProductTableMaxWidth = productTableElement ? productTableElement.style.maxWidth : '';
     const originalProductTableTableLayout = productTableElement ? productTableElement.style.tableLayout : '';
 
