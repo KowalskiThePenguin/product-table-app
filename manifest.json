@@ -2,7 +2,7 @@
   "name": "Aqua Luxe",
   "short_name": "Списки",
   "description": "Приложение для ведения таблиц товаров с оффлайн-сохранением.",
-  "start_url": "/product-table-app/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#198754",
