@@ -445,7 +445,7 @@ body.hide-for-screenshot .print-header-image {
     }
 	    @page {
         margin: 0; /* Обнуляем все поля */
-        margin-top: 10mm; /* Устанавливаем верхнее поле 10мм */
+        margin-top: 3mm; /* Устанавливаем верхнее поле 10мм */
     }
     tbody {
         /* *** ДОБАВЛЯЕМ/ИЗМЕНЯЕМ ЭТИ СВОЙСТВА ДЛЯ ВЕРТИКАЛЬНОГО РАСТЯГИВАНИЯ TBODY *** */
@@ -491,15 +491,12 @@ body.hide-for-screenshot .print-header-image {
     }
     table {
        width: 100% !important;
-       page-break-inside: auto;
-      border-collapse: collapse !important;
-  }
+       border-collapse: collapse !important;
+    }
     thead {
         display: table-row-group !important; /* Меняем с table-header-group */
         /* Это должно заставить его отобразиться только один раз в начале таблицы */
         /* Дополнительные свойства для контроля разрыва страниц после шапки */
-        page-break-after: avoid !important;
-        break-after: avoid !important; /* Современное свойство */
     }
 
      /* Пытаемся предотвратить повторение подвала и разместить его в конце */
@@ -507,8 +504,6 @@ body.hide-for-screenshot .print-header-image {
         display: table-row-group !important; /* Меняем с table-footer-group */
         /* Это должно поместить подвал после всех строк tbody в потоке */
         /* Дополнительные свойства для контроля разрыва страниц перед подвалом */
-        page-break-before: avoid !important;
-        break-before: avoid !important; /* Современное свойство */
     }
 
     thead th {
@@ -518,11 +513,6 @@ body.hide-for-screenshot .print-header-image {
     tbody tr:nth-child(even) {
          background-color: #f9f9f9 !important;
     }
-
-    tbody tr {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important; /* Современное свойство */
-    }
 
     tfoot td {
         background-color: #F7F21A !important;
