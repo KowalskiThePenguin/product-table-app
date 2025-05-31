@@ -544,6 +544,24 @@ body.hide-for-screenshot .print-header-image {
         /* Убираем общие правила ширины, чтобы специфичные классы могли применить свою ширину */
         width: auto !important;
     }
+	tbody input[type="text"],
+    tbody input[type="number"] {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: normal !important;
+        color: inherit !important;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        /* Убираем padding и margin здесь, так как мы управляем им через общее input[type="text"] или td */
+        padding: 0 !important; /* Важно, чтобы не было двойного паддинга */
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: inherit !important;
+    }
+
+
     tbody input[type="text"], /* Поле "Наименование" */
     tbody input[type="number"] /* Поле "Количество" (если у него type="number", иначе тоже type="text") */
     {
