@@ -536,157 +536,81 @@ function printTable() {
 }
 
 function captureTableSnapshot() {
-    const elementToCapture = document.getElementById('main-content'); // Это .container
-    const productTableElement = document.getElementById('product-table'); // Сама таблица
+    const mainContent = document.getElementById('main-content');
+    const productTable = document.getElementById('product-table');
 
-    if (!elementToCapture) {
-        console.error('Ошибка: Элемент контейнера с ID "main-content" не найден.');
-        alert('Не удалось найти контейнер для создания снимка.');
+    if (!mainContent || !productTable) {
+        alert('Ошибка: таблица или контейнер не найдены.');
         return;
     }
 
-    console.log('Попытка создать снимок контейнера с отключением медиазапросов...');
+    const tableWidth = productTable.scrollWidth;
+    const tableHeight = mainContent.scrollHeight;
 
-    const appHeader = document.getElementById('app-header');
-    const appFooter = document.getElementById('app-footer');
-    const sideMenu = document.getElementById('side-menu');
-    const networkStatus = document.getElementById('network-status');
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.style.top = '0';
+    wrapper.style.left = '0';
+    wrapper.style.zIndex = '-1';
+    wrapper.style.backgroundColor = 'white';
+    wrapper.style.width = tableWidth + 'px';
+    wrapper.style.minWidth = tableWidth + 'px';
+    wrapper.style.overflow = 'visible';
 
-    const printHeaderTextElement = document.querySelector('.print-header-text');
-    const printHeaderImageDiv = document.querySelector('.print-header-image');
+    // Клонируем основной контент
+    const clone = mainContent.cloneNode(true);
+    clone.id = 'screenshot-clone';
+    clone.style.width = '100%';
+    clone.style.maxWidth = 'none';
+    clone.style.overflow = 'visible';
+    clone.style.transform = 'none';
+    clone.style.margin = '0';
+    clone.style.padding = '0';
 
+    // Удаляем последний столбец ("Удалить")
+    const cloneTable = clone.querySelector('#product-table');
+    if (cloneTable) {
+        cloneTable.style.width = '100%';
+        cloneTable.style.maxWidth = 'none';
+        cloneTable.style.tableLayout = 'auto';
 
-    // Сохраняем исходные встроенные стили
-    const originalContainerTransform = elementToCapture.style.transform;
-    const originalContainerWidth = elementToCapture.style.width;
-    const originalContainerOverflowX = elementToCapture.style.overflowX;
-    const originalContainerPadding = elementToCapture.style.padding;
-    const originalContainerPaddingRight = elementToCapture.style.paddingRight; // *** НОВОЕ: Сохраняем original padding-right ***
-
-    const originalProductTableTransform = productTableElement ? productTableElement.style.transform : '';
-    const originalProductTableWidth = productTableElement ? productTableElement.style.width : '';
-    const originalProductTableMaxWidth = productTableElement ? productTableElement.style.maxWidth : '';
-    const originalProductTableTableLayout = productTableElement ? productTableElement.style.tableLayout : '';
-
-    const originalAppHeaderDisplay = appHeader ? appHeader.style.display : '';
-    const originalAppFooterDisplay = appFooter ? appFooter.style.display : '';
-    const originalSideMenuDisplay = sideMenu ? sideMenu.style.display : '';
-    const originalNetworkStatusDisplay = networkStatus ? networkStatus.style.display : '';
-
-    const originalPrintHeaderTextDisplay = printHeaderTextElement ? printHeaderTextElement.style.display : '';
-    const originalPrintHeaderImageDisplay = printHeaderImageDiv ? printHeaderImageDiv.style.display : '';
-
-
-    // Временно переопределяем стили для основного захватываемого элемента
-    // *** ИЗМЕНЕНО: Добавлен padding-right ***
-    elementToCapture.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; overflow-x: visible !important; padding: 20px !important; padding-right: 30px !important;'; // Например, 30px отступ справа
-    if (productTableElement) {
-        productTableElement.style.cssText += 'transform: none !important; width: auto !important; max-width: none !important; table-layout: auto !important;';
+        const lastHeader = cloneTable.querySelector('thead th:last-child');
+        const lastCells = cloneTable.querySelectorAll('tbody td:last-child, tfoot td:last-child');
+        if (lastHeader) lastHeader.style.display = 'none';
+        lastCells.forEach(td => td.style.display = 'none');
     }
 
-    // Временно скрываем глобальные элементы UI
-    if (appHeader) appHeader.style.display = 'none';
-    if (appFooter) appFooter.style.display = 'none';
-    if (sideMenu) sideMenu.style.display = 'none';
-    if (networkStatus) networkStatus.style.display = 'none';
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
 
-    // Временно скрываем элементы названия компании и логотипа
-    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем класс к <body> для скрытия элементов ---
-    document.body.classList.add('hide-for-screenshot');
-    console.log('Добавлен класс hide-for-screenshot к body.');
+    html2canvas(wrapper, {
+        scale: 2,
+        width: tableWidth,
+        height: tableHeight,
+        windowWidth: tableWidth,
+        scrollX: 0,
+        scrollY: 0,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const viewName = viewMetadata[activeViewId] || 'таблица';
+        const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
 
-
-    // Временно скрываем столбец "Удалить"
-    const actionHeaders = elementToCapture.querySelectorAll('thead th:last-child');
-    const actionCells = elementToCapture.querySelectorAll('tbody td:last-child');
-    const footerActionCell = elementToCapture.querySelector('tfoot td:last-child');
-
-    actionHeaders.forEach(th => th.style.display = 'none');
-    actionCells.forEach(td => td.style.display = 'none');
-    if (footerActionCell) footerActionCell.style.display = 'none';
-
-    const captureWidth = Math.max(elementToCapture.scrollWidth, productTableElement ? productTableElement.scrollWidth : 0);
-    const captureHeight = elementToCapture.scrollHeight;
-
-    setTimeout(() => {
-        html2canvas(elementToCapture, {
-            scale: 2,
-            logging: true,
-            useCORS: true,
-            width: captureWidth,
-            height: captureHeight,
-            scrollY: -window.scrollY,
-        }).then(canvas => {
-            console.log('Снимок успешно создан на Canvas.');
-            const dataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = dataUrl;
-
-            const viewName = viewMetadata[activeViewId] ? viewMetadata[activeViewId].trim() : 'таблица';
-            const filename = `${viewName.replace(/[^a-zа-я0-9]/gi, '_')}_снимок.png`;
-
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log('Снимок захвачен, инициировано скачивание.');
-
-        }).catch(error => {
-            console.error('Ошибка при создании снимка:', error);
-            alert('Произошла ошибка при создании снимка.');
-        }).finally(() => {
-            // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Удаляем класс скрытия из <body> ---
-            document.body.classList.remove('hide-for-screenshot');
-            console.log('Удален класс hide-for-screenshot из body.');
-
-            // Восстанавливаем исходные встроенные стили
-            elementToCapture.style.transform = originalContainerTransform;
-            elementToCapture.style.width = originalContainerWidth;
-            elementToCapture.style.overflowX = originalContainerOverflowX;
-            elementToCapture.style.padding = originalContainerPadding;
-            elementToCapture.style.paddingRight = originalContainerPaddingRight; // *** НОВОЕ: Восстанавливаем original padding-right ***
-
-
-            if (productTableElement) {
-                productTableElement.style.transform = originalProductTableTransform;
-                productTableElement.style.width = originalProductTableWidth;
-                productTableElement.style.maxWidth = originalProductTableMaxWidth;
-                productTableElement.style.tableLayout = originalProductTableTableLayout;
-            }
-
-            // Восстанавливаем display для скрытых элементов UI
-            if (appHeader) appHeader.style.display = originalAppHeaderDisplay;
-            if (appFooter) appFooter.style.display = originalAppFooterDisplay;
-            if (sideMenu) sideMenu.style.display = originalSideMenuDisplay;
-            if (networkStatus) networkStatus.style.display = originalNetworkStatusDisplay;
-
-            // Восстанавливаем display стили для элементов названия компании и логотипа
-            // В этом случае мы полагаемся на удаление класса 'hide-for-screenshot' из body
-            // Если какие-то элементы были скрыты НЕ через класс, а напрямую style.display = 'none !important',
-            // то их нужно восстанавливать через removeProperty('display') или по их originalDisplay
-            // Однако, сейчас мы полагаемся на класс, поэтому эти строки не нужны.
-            /*
-            if (printHeaderTextElement) {
-                printHeaderTextElement.style.removeProperty('display');
-                if (originalPrintHeaderTextDisplay !== '') {
-                    printHeaderTextElement.style.display = originalPrintHeaderTextDisplay;
-                }
-            }
-            if (printHeaderImageDiv) {
-                printHeaderImageDiv.style.removeProperty('display');
-                if (originalPrintHeaderImageDisplay !== '') {
-                    printHeaderImageDiv.style.display = originalPrintHeaderImageDisplay;
-                }
-            }
-            */
-
-            // Восстанавливаем display для столбцов "Удалить"
-            actionHeaders.forEach(th => th.style.display = '');
-            actionCells.forEach(td => td.style.display = '');
-            if (footerActionCell) footerActionCell.style.display = '';
-        });
-    }, 100);
+        link.href = dataUrl;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }).catch(err => {
+        alert('Ошибка при создании снимка');
+        console.error(err);
+    }).finally(() => {
+        wrapper.remove();
+    });
 }
+
 // --- Функции для работы с данными Google Sheets ---
 async function fetchProducts() {
    try {
